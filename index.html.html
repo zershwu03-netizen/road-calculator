@@ -1,0 +1,1751 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>施工前面積計算表</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #F7F8FA;
+  --surface: #FFFFFF;
+  --surface2: #F0F2F5;
+  --border: #DDE1EA;
+  --border2: #C8CDD8;
+  --accent: #E67E22;
+  --accent-dark: #C0392B;
+  --accent-light: #FEF3E8;
+  --blue: #2980B9;
+  --blue-light: #EBF5FB;
+  --green: #27AE60;
+  --green-light: #EAFAF1;
+  --red: #E74C3C;
+  --text: #1A1D27;
+  --text2: #5A6170;
+  --text3: #9AA0AE;
+  --radius: 10px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 100px;
+}
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(135deg, #1A1D27 0%, #2E3450 100%);
+  padding: 20px 18px 16px;
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+.header-row { display: flex; align-items: center; justify-content: space-between; }
+.header-logo {
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-icon {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.header-title { font-size: 17px; font-weight: 900; color: #FFF; letter-spacing: 0.03em; }
+.header-sub { font-size: 10px; color: rgba(255,255,255,0.5); font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
+.header-date {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px; padding: 5px 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.8);
+}
+
+/* ── PROJECT INFO ── */
+.project-bar {
+  background: var(--accent);
+  padding: 0 18px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; user-select: none;
+}
+.project-bar-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 10px 0;
+}
+.project-bar-label { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.8); }
+.project-bar-value { font-size: 13px; font-weight: 700; color: #FFF; max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-expand {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 18px;
+  display: none;
+}
+.project-expand.open { display: block; }
+.proj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.proj-field label { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.proj-field input {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: 'Noto Sans TC', sans-serif; font-size: 13px;
+  padding: 8px 10px; outline: none;
+}
+.proj-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(230,126,34,0.12); }
+.proj-field.full { grid-column: 1 / -1; }
+
+/* ── SECTION TABS ── */
+.section-tabs {
+  display: flex; overflow-x: auto; gap: 0;
+  background: var(--surface); border-bottom: 2px solid var(--border);
+  padding: 0 12px; scrollbar-width: none;
+  position: sticky; top: 74px; z-index: 40;
+}
+.section-tabs::-webkit-scrollbar { display: none; }
+.sec-tab {
+  flex-shrink: 0; padding: 12px 16px;
+  font-size: 13px; font-weight: 700; color: var(--text3);
+  border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s;
+  white-space: nowrap; margin-bottom: -2px;
+}
+.sec-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── LIVE TOTALS BAR ── */
+.totals-bar {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  background: linear-gradient(135deg, #1A1D27, #2E3450);
+  padding: 10px 14px; gap: 6px;
+}
+.total-item { text-align: center; }
+.total-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; text-transform: uppercase; }
+.total-value { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: var(--accent); }
+.total-unit { font-size: 9px; color: rgba(255,255,255,0.4); }
+
+/* ── INPUT SECTION ── */
+.input-section { padding: 14px 16px; }
+
+/* New row input card */
+.input-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 2px dashed var(--border2);
+  padding: 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+.input-card-title {
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+.input-card-title span { width: 20px; height: 20px; background: var(--accent); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; }
+
+/* Input rows */
+.irow { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end; }
+.irow .ifield { flex: 1; }
+.ifield label { display: block; font-size: 10px; font-weight: 700; color: var(--text3); margin-bottom: 4px; }
+.ifield input, .ifield select {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: 'Noto Sans TC', sans-serif;
+  font-size: 15px; padding: 10px 10px; outline: none; transition: all 0.2s;
+  -webkit-appearance: none;
+}
+.ifield input:focus, .ifield select:focus {
+  border-color: var(--accent); background: var(--accent-light);
+  box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
+}
+.ifield input.mono { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+.ifield .unit-wrap { position: relative; }
+.ifield .unit-wrap input { padding-right: 34px; }
+.ifield .unit-wrap .unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; pointer-events: none; }
+
+/* Result preview */
+.result-preview {
+  background: var(--green-light);
+  border: 1.5px solid rgba(39,174,96,0.3);
+  border-radius: 8px; padding: 10px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 10px 0; display: none;
+}
+.result-preview.show { display: flex; }
+.result-label { font-size: 11px; font-weight: 700; color: var(--green); }
+.result-values { text-align: right; }
+.result-main { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--green); }
+.result-sub { font-size: 10px; color: var(--text3); }
+
+/* Add button */
+.btn-add {
+  width: 100%; padding: 13px; border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: #FFF; font-family: 'Noto Sans TC', sans-serif; font-size: 15px; font-weight: 700;
+  border: none; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 16px rgba(230,126,34,0.3);
+}
+.btn-add:active { transform: scale(0.97); }
+
+/* ── TABLE VIEW ── */
+.table-section { padding: 14px 16px; }
+.table-header-row {
+  display: grid; grid-template-columns: 90px 56px 56px 60px 68px 76px 50px;
+  background: linear-gradient(135deg, #1A1D27, #2E3450);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 8px 6px; gap: 2px;
+}
+.th {
+  font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7);
+  text-align: center; letter-spacing: 0.05em;
+}
+.th.accent { color: var(--accent); }
+
+.data-rows { background: var(--surface); border-radius: 0 0 var(--radius) var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+
+.data-row {
+  display: grid; grid-template-columns: 90px 56px 56px 60px 68px 76px 50px;
+  padding: 7px 6px; gap: 2px; border-bottom: 1px solid var(--border);
+  align-items: center; cursor: pointer; transition: background 0.15s;
+  animation: rowIn 0.3s ease;
+}
+@keyframes rowIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+.data-row:last-child { border-bottom: none; }
+.data-row:nth-child(even) { background: var(--surface2); }
+.data-row:active { background: var(--accent-light); }
+
+.td {
+  font-size: 11px; text-align: right; color: var(--text);
+  font-family: 'JetBrains Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.td.stake { font-size: 10px; font-weight: 700; color: var(--blue); text-align: left; }
+.td.area { font-weight: 700; color: var(--text); }
+.td.cumul { font-weight: 700; color: var(--accent); }
+.td.note { font-family: 'Noto Sans TC', sans-serif; font-size: 10px; color: var(--red); text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* Total row */
+.total-row {
+  display: grid; grid-template-columns: 90px 56px 56px 60px 68px 76px 50px;
+  background: linear-gradient(135deg, #1A1D27, #2E3450);
+  padding: 10px 6px; gap: 2px; border-radius: 0 0 var(--radius) var(--radius);
+  align-items: center;
+}
+.total-td { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); font-family: 'JetBrains Mono', monospace; text-align: right; }
+.total-td.label { color: rgba(255,255,255,0.8); font-size: 11px; font-family: 'Noto Sans TC', sans-serif; text-align: left; }
+.total-td.hl { color: var(--accent); font-size: 13px; }
+
+/* Empty state */
+.empty-state { padding: 40px 0; text-align: center; background: var(--surface); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); }
+.empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-text { font-size: 14px; color: var(--text3); font-weight: 500; }
+
+/* ── EXPORT ── */
+.export-section { padding: 14px 16px; }
+.export-card { background: var(--surface); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; }
+.export-card-title { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.stat-row { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 10px; }
+.stat-box { background: var(--surface2); border-radius: 8px; padding: 12px; text-align: center; border: 1.5px solid var(--border); }
+.stat-num { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--accent); }
+.stat-lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.preview-box {
+  background: #F8F9FA; border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--text2); line-height: 1.9; white-space: pre-wrap; max-height: 240px; overflow-y: auto;
+  margin-bottom: 12px;
+}
+.btn-row { display: flex; gap: 8px; }
+.btn {
+  flex: 1; padding: 12px 8px; border-radius: var(--radius); border: none; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 13px; font-weight: 700;
+  transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn:active { transform: scale(0.96); }
+.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #FFF; box-shadow: 0 3px 12px rgba(230,126,34,0.25); }
+.btn-outline { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border2); }
+.btn-danger { background: rgba(231,76,60,0.08); color: var(--red); border: 1.5px solid rgba(231,76,60,0.3); }
+.btn-blue { background: var(--blue-light); color: var(--blue); border: 1.5px solid rgba(41,128,185,0.3); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 200; display: none; align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal-sheet {
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 85vh; overflow-y: auto; padding: 20px;
+  animation: sheetUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+.modal-title { font-size: 17px; font-weight: 900; margin-bottom: 16px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.detail-box { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+.detail-box-label { font-size: 10px; font-weight: 700; color: var(--text3); margin-bottom: 4px; }
+.detail-box-val { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--text); }
+.detail-box-val.accent { color: var(--accent); }
+.detail-box-val.green { color: var(--green); }
+.detail-box.full { grid-column: 1 / -1; }
+.detail-box.note-box .detail-box-val { font-family: 'Noto Sans TC', sans-serif; font-size: 14px; color: var(--red); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: #1A1D27; color: #FFF; padding: 10px 20px;
+  border-radius: 24px; font-size: 13px; font-weight: 700;
+  opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none;
+  white-space: nowrap; box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; gap: 6px;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+}
+.nav-item {
+  flex: 1; padding: 10px 0; text-align: center; cursor: pointer;
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  border: none; background: transparent; transition: color 0.2s;
+}
+.nav-item.active { color: var(--accent); }
+.nav-icon { font-size: 22px; display: block; margin-bottom: 2px; }
+
+/* Section panels */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* Delete swipe hint */
+.swipe-hint { font-size: 10px; color: var(--text3); text-align: center; padding: 6px 0 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── COMBOBOX ── */
+.combo-wrap { position: relative; }
+.combo-select {
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: 'Noto Sans TC', sans-serif;
+  font-size: 13px; padding: 8px 36px 8px 10px; outline: none;
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.combo-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(230,126,34,0.12); }
+.combo-arrow {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; font-size: 12px; color: var(--text3);
+}
+.combo-add-row { display: flex; gap: 6px; margin-top: 6px; }
+.combo-add-input {
+  flex: 1; background: var(--surface2); border: 1.5px dashed var(--border2);
+  border-radius: 8px; color: var(--text); font-family: 'Noto Sans TC', sans-serif;
+  font-size: 13px; padding: 7px 10px; outline: none;
+}
+.combo-add-input:focus { border-color: var(--accent); border-style: solid; }
+.combo-add-btn {
+  padding: 7px 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+}
+.combo-add-btn:active { opacity: 0.8; }
+.combo-del-btn {
+  padding: 7px 10px; background: rgba(231,76,60,0.08); color: var(--red);
+  border: 1.5px solid rgba(231,76,60,0.25); border-radius: 8px; font-size: 12px;
+  cursor: pointer; white-space: nowrap;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <div class="header-logo">
+      <div class="logo-icon">🚧</div>
+      <div>
+        <div class="header-title">施工前面積計算表</div>
+        <div class="header-sub">ROAD AREA CALCULATOR</div>
+      </div>
+    </div>
+    <div class="header-date" id="hDate"></div>
+  </div>
+</div>
+
+<!-- PROJECT BAR -->
+<div class="project-bar" onclick="toggleProject()">
+  <div class="project-bar-inner">
+    <div class="project-bar-label">📋 工程名稱</div>
+    <div class="project-bar-value" id="projBarName">（點此展開填寫工程資訊）</div>
+  </div>
+</div>
+<div class="project-expand" id="projExpand">
+  <div class="proj-grid">
+
+    <div class="proj-field full">
+      <label>工程名稱</label>
+      <div class="combo-wrap">
+        <select class="combo-select" id="projName" onchange="updateProjBar()">
+          <option value="">請選擇或新增...</option>
+        </select>
+        <span class="combo-arrow">▼</span>
+      </div>
+      <div class="combo-add-row">
+        <input class="combo-add-input" id="projNameNew" placeholder="輸入新工程名稱後按＋">
+        <button class="combo-add-btn" onclick="addOption('projName','projNameNew','proj_names')">＋</button>
+        <button class="combo-del-btn" onclick="delOption('projName','proj_names')" title="刪除選取">✕</button>
+      </div>
+    </div>
+
+    <div class="proj-field full">
+      <label>施工日期</label>
+      <input id="projDate" type="date" onchange="saveProject()">
+    </div>
+
+    <div class="proj-field">
+      <label>承包廠商</label>
+      <div class="combo-wrap">
+        <select class="combo-select" id="projVendor" onchange="saveProject()">
+          <option value="">請選擇或新增...</option>
+        </select>
+        <span class="combo-arrow">▼</span>
+      </div>
+      <div class="combo-add-row">
+        <input class="combo-add-input" id="projVendorNew" placeholder="新廠商名稱">
+        <button class="combo-add-btn" onclick="addOption('projVendor','projVendorNew','proj_vendors')">＋</button>
+        <button class="combo-del-btn" onclick="delOption('projVendor','proj_vendors')">✕</button>
+      </div>
+    </div>
+
+    <div class="proj-field">
+      <label>監造單位</label>
+      <div class="combo-wrap">
+        <select class="combo-select" id="projSuper" onchange="saveProject()">
+          <option value="">請選擇或新增...</option>
+        </select>
+        <span class="combo-arrow">▼</span>
+      </div>
+      <div class="combo-add-row">
+        <input class="combo-add-input" id="projSuperNew" placeholder="新監造單位">
+        <button class="combo-add-btn" onclick="addOption('projSuper','projSuperNew','proj_supers')">＋</button>
+        <button class="combo-del-btn" onclick="delOption('projSuper','proj_supers')">✕</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LIVE TOTALS -->
+<div class="totals-bar">
+  <div class="total-item">
+    <div class="total-label">筆數</div>
+    <div class="total-value" id="tCount">0</div>
+    <div class="total-unit">筆</div>
+  </div>
+  <div class="total-item">
+    <div class="total-label">本路段面積合計</div>
+    <div class="total-value" id="tArea">0.00</div>
+    <div class="total-unit">M²</div>
+  </div>
+  <div class="total-item">
+    <div class="total-label">累計面積</div>
+    <div class="total-value" id="tCumul">0.00</div>
+    <div class="total-unit">M²</div>
+  </div>
+</div>
+
+<!-- SECTION TABS -->
+<div class="section-tabs" id="secTabs">
+  <div class="sec-tab active" onclick="switchPanel('input',this)">➕ 新增量測</div>
+  <div class="sec-tab" onclick="switchPanel('table',this)">📋 記錄表格</div>
+  <div class="sec-tab" onclick="switchPanel('export',this)">📤 匯出報表</div>
+  <div class="sec-tab" onclick="switchPanel('paste',this)">📥 貼上轉換</div>
+</div>
+
+<!-- ════ INPUT PANEL ════ -->
+<div class="panel active" id="panel-input">
+  <div class="input-section">
+
+    <div class="input-card">
+      <div class="input-card-title">
+        <span>📍</span> 量測兩個數字就好
+      </div>
+
+      <!-- 路段名稱 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>路段名稱</label>
+          <input id="projSeg" placeholder="例：華香橋上台65" oninput="saveProject()" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- 樁位 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>樁位（公尺）</label>
+          <div class="unit-wrap">
+            <input type="number" class="mono" id="iStake" placeholder="0、20、213.6"
+              min="0" step="0.1" inputmode="decimal"
+              oninput="liveCalc()" autocomplete="off">
+            <span class="unit">m</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 寬度 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>量測寬度 (M)</label>
+          <div class="unit-wrap">
+            <input type="number" id="iWidth" placeholder="3.96" step="0.01" inputmode="decimal" oninput="liveCalc()">
+            <span class="unit">M</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 備註 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>備註 <span style="color:var(--text3);font-size:10px;font-weight:400">（選填）</span></label>
+          <input id="iNote" placeholder="例：防撞樁19支、改三3/4...">
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn-add" onclick="addRow()">✅ 確認加入記錄</button>
+      </div>
+
+      <!-- 自動計算預覽卡片 -->
+      <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin:10px 0;">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px;">⚙️ 自動計算（無需填寫）</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">支距</div>
+            <div id="autoDistDisplay" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--blue);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">平均寬度</div>
+            <div id="autoAvgDisplay" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--blue);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">本筆面積</div>
+            <div id="autoAreaDisplay" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--green);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M²</div>
+          </div>
+        </div>
+        <!-- 累計 -->
+        <div id="autoCumulDisplay" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:var(--text3);">加入後累計面積</span>
+          <span id="autoCumulVal" style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);">— M²</span>
+        </div>
+        <!-- 第一筆提示 -->
+        <div id="firstRowHint" style="margin-top:8px;font-size:11px;color:var(--text3);text-align:center;display:none;">
+          ℹ️ 第一筆只記錄寬度，面積從第二筆開始計算
+        </div>
+      </div>
+
+      <button class="btn-add" onclick="clearAll()" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);box-shadow:none;">🗑️ 刪除本路段所有記錄</button>
+    </div>
+
+    <!-- 上一筆提示 -->
+    <div id="prevRowInfo" style="display:none;background:var(--green-light);border:1.5px solid rgba(39,174,96,0.25);border-radius:var(--radius);padding:10px 14px;margin-top:0;">
+      <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px;">📌 上一筆記錄</div>
+      <div id="prevRowText" style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;"></div>
+    </div>
+
+    <!-- Formula explanation -->
+    <div style="background:var(--blue-light);border:1.5px solid rgba(41,128,185,0.2);border-radius:var(--radius);padding:12px 14px;margin-top:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px;">📐 計算公式（自動進行）</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.9;">
+        <b>支距</b> = 本樁號 − 上樁號（自動算）<br>
+        <b>平均寬度</b> = (本點寬 + 上點寬) ÷ 2（自動算）<br>
+        <b>面積</b> = 支距 × 平均寬度（自動算）<br>
+        <b>累計面積</b> = 各筆面積累加（自動算）
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════ TABLE PANEL ════ -->
+<div class="panel" id="panel-table">
+  <div class="table-section">
+    <div class="table-header-row">
+      <div class="th">樁位</div>
+      <div class="th">支距</div>
+      <div class="th">寬度</div>
+      <div class="th">均寬</div>
+      <div class="th accent">面積M²</div>
+      <div class="th accent">累計M²</div>
+      <div class="th">備註</div>
+    </div>
+    <div class="data-rows" id="dataRows">
+      <div class="empty-state">
+        <div class="empty-icon">📏</div>
+        <div class="empty-text">尚無量測記錄<br><span style="font-size:12px">前往「新增量測」開始記錄</span></div>
+      </div>
+    </div>
+    <div class="total-row" id="totalRow" style="display:none">
+      <div class="total-td label" style="grid-column:1/4">合　計</div>
+      <div class="total-td"></div>
+      <div class="total-td hl" id="totalArea"></div>
+      <div class="total-td hl" id="totalCumul"></div>
+      <div class="total-td"></div>
+    </div>
+    <div class="swipe-hint" id="swipeHint" style="display:none">點選任一列可查看詳情或刪除</div>
+  </div>
+</div>
+
+<!-- ════ EXPORT PANEL ════ -->
+<div class="panel" id="panel-export">
+  <div class="export-section">
+
+    <div class="export-card">
+      <div class="export-card-title">📊 統計摘要</div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" id="eCount">0</div><div class="stat-lbl">量測筆數</div></div>
+        <div class="stat-box"><div class="stat-num" id="eTotalArea">0</div><div class="stat-lbl">面積合計 M²</div></div>
+        <div class="stat-box"><div class="stat-num" id="eMaxWidth">—</div><div class="stat-lbl">最大寬度 M</div></div>
+        <div class="stat-box"><div class="stat-num" id="eAvgWidth">—</div><div class="stat-lbl">平均寬度 M</div></div>
+      </div>
+    </div>
+
+    <div class="export-card">
+      <div class="export-card-title">📄 報表預覽</div>
+      <div class="preview-box" id="previewBox">尚無資料</div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="copyReport()">📋 複製</button>
+        <button class="btn btn-blue" onclick="downloadXLSX()">⬇ 簡易Excel</button>
+      </div>
+    </div>
+
+    <div class="export-card">
+      <div class="export-card-title" style="color:var(--accent)">🏗️ 產生格式報表（公司原版格式）</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+        使用 AI 產生與公司原版完全相同格式的 Excel，包含<b>標楷體字體、框線、合併儲存格、樁號格式</b>，需要網路連線。
+      </div>
+
+      <!-- 進度狀態 -->
+      <div id="fmtStatus" style="display:none;background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--text2);">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="fmtSpinner" style="width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
+          <span id="fmtMsg">準備中...</span>
+        </div>
+        <div id="fmtBar" style="height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden;display:none;">
+          <div id="fmtBarInner" style="height:100%;background:var(--accent);width:0%;transition:width 0.4s;border-radius:2px;"></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="fmtBtn" onclick="generateFormattedExcel()" style="background:linear-gradient(135deg,#27AE60,#1e8449);flex:1;">
+          🚀 產生公司格式 Excel
+        </button>
+      </div>
+    </div>
+
+    <div class="export-card">
+      <div class="export-card-title" style="color:var(--red)">⚠️ 資料管理</div>
+      <button class="btn btn-danger" style="width:100%" onclick="clearAll()">🗑️ 清除本路段所有記錄</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════ PASTE PANEL ════ -->
+<div class="panel" id="panel-paste">
+  <div class="export-section">
+
+    <div class="export-card">
+      <div class="export-card-title">📥 貼上文字自動轉換</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;">
+        將工程師傳來的量測文字貼入下方，格式如：<br>
+        <span style="font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:11px;">路段名稱（選填）<br>樁位 寬度<br>0 13.1<br>10 12.1<br>...</span>
+      </div>
+
+      <!-- 工程資訊 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="proj-field">
+          <label>工程名稱</label>
+          <div class="combo-wrap">
+            <select class="combo-select" id="pasteProjectName" onchange="savePasteProject()">
+              <option value="">請選擇或輸入...</option>
+            </select>
+            <span class="combo-arrow">▼</span>
+          </div>
+        </div>
+        <div class="proj-field">
+          <label>施工日期</label>
+          <input type="date" id="pasteDate" onchange="savePasteProject()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;-webkit-appearance:none;">
+        </div>
+        <div class="proj-field">
+          <label>承包廠商</label>
+          <div class="combo-wrap">
+            <select class="combo-select" id="pasteVendor" onchange="savePasteProject()">
+              <option value="">請選擇或輸入...</option>
+            </select>
+            <span class="combo-arrow">▼</span>
+          </div>
+        </div>
+        <div class="proj-field">
+          <label>監造單位</label>
+          <div class="combo-wrap">
+            <select class="combo-select" id="pasteSuper" onchange="savePasteProject()">
+              <option value="">請選擇或輸入...</option>
+            </select>
+            <span class="combo-arrow">▼</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 貼上區 -->
+      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:0.06em;">量測文字（貼入後自動解析）</div>
+      <textarea id="pasteInput" placeholder="和平路（廣和街至干城路）&#10;0 13.1&#10;10 12.1&#10;20 11.8&#10;30 10.2&#10;..." oninput="parsePasteText()"
+        style="width:100%;min-height:160px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;padding:12px;outline:none;resize:vertical;line-height:1.8;"></textarea>
+
+      <!-- 解析預覽 -->
+      <div id="parsePreview" style="display:none;margin-top:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px;">✅ 解析結果</div>
+        <div style="background:var(--green-light);border:1.5px solid rgba(39,174,96,0.3);border-radius:8px;padding:10px 12px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text2);">路段</span>
+            <span id="parseSeg" style="font-weight:700;color:var(--text);"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text2);">筆數</span>
+            <span id="parseCount" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--blue);"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:var(--text2);">面積合計</span>
+            <span id="parseTotal" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);"></span>
+          </div>
+        </div>
+        <!-- 解析後資料預覽表 -->
+        <div id="parseTable" style="margin-top:8px;overflow-x:auto;"></div>
+      </div>
+
+      <!-- 錯誤提示 -->
+      <div id="parseError" style="display:none;margin-top:8px;background:rgba(231,76,60,0.08);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red);"></div>
+
+      <!-- 下載按鈕 -->
+      <div id="parseBtns" style="display:none;margin-top:12px;display:none;flex-direction:column;gap:8px;">
+        <button class="btn btn-blue" onclick="downloadPasteXLSX('simple')">⬇ 下載簡易 Excel</button>
+        <button class="btn btn-primary" onclick="downloadPasteXLSX('formatted')" style="background:linear-gradient(135deg,#27AE60,#1e8449);">🚀 下載公司格式 Excel</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="detail-grid" id="modalBody"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;">
+      <button class="btn btn-danger" style="flex:1" onclick="deleteRow()">🗑️ 刪除此筆</button>
+      <button class="btn btn-outline" style="flex:1" onclick="document.getElementById('modal').classList.remove('open')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// 全域錯誤攔截（除錯用）
+window.onerror = function(msg, src, line) {
+  console.error('JS Error:', msg, 'line:', line);
+  return false;
+};
+
+let rows = JSON.parse(localStorage.getItem('area_rows') || '[]');
+let currentId = null;
+
+// Init
+const today = new Date();
+document.getElementById('hDate').textContent = today.toLocaleDateString('zh-TW');
+document.getElementById('projDate').value = today.toISOString().split('T')[0];
+loadProject();
+renderAll();
+
+function toggleProject() {
+  document.getElementById('projExpand').classList.toggle('open');
+}
+function updateProjBar() {
+  const v = document.getElementById('projName').value.trim();
+  document.getElementById('projBarName').textContent = v || '（點此展開填寫工程資訊）';
+  saveProject();
+}
+function saveProject() {
+  const segEl = document.getElementById('projSeg');
+  const p = {
+    name:   document.getElementById('projName').value,
+    seg:    segEl ? segEl.value : '',
+    date:   document.getElementById('projDate').value,
+    vendor: document.getElementById('projVendor').value,
+    super:  document.getElementById('projSuper').value
+  };
+  localStorage.setItem('area_project', JSON.stringify(p));
+}
+function loadProject() {
+  // 載入選項清單
+  loadOptions('projName', 'proj_names');
+  loadOptions('projVendor', 'proj_vendors');
+  loadOptions('projSuper', 'proj_supers');
+  // 載入已選值
+  const p = JSON.parse(localStorage.getItem('area_project') || 'null');
+  if (!p) return;
+  if (p.name) { document.getElementById('projName').value = p.name; updateProjBar(); }
+  // projSeg 在新增量測頁，需安全存取
+  const segEl = document.getElementById('projSeg');
+  if (segEl && p.seg) segEl.value = p.seg;
+  if (p.date) document.getElementById('projDate').value = p.date;
+  if (p.vendor) document.getElementById('projVendor').value = p.vendor;
+  if (p.super)  document.getElementById('projSuper').value = p.super;
+}
+function loadOptions(selectId, storageKey) {
+  const sel = document.getElementById(selectId);
+  const items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+  // 保留第一個 placeholder option
+  while (sel.options.length > 1) sel.remove(1);
+  items.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+}
+function addOption(selectId, inputId, storageKey) {
+  const input = document.getElementById(inputId);
+  const val = input.value.trim();
+  if (!val) { toast('⚠️ 請先輸入名稱'); return; }
+  const items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+  if (items.includes(val)) { toast('⚠️ 已存在，直接選取即可'); return; }
+  items.push(val);
+  localStorage.setItem(storageKey, JSON.stringify(items));
+  loadOptions(selectId, storageKey);
+  document.getElementById(selectId).value = val;
+  input.value = '';
+  if (selectId === 'projName') updateProjBar();
+  else saveProject();
+  toast('✅ 已新增並選取');
+}
+function delOption(selectId, storageKey) {
+  const sel = document.getElementById(selectId);
+  const val = sel.value;
+  if (!val) { toast('⚠️ 請先選取要刪除的項目'); return; }
+  if (!confirm(`確定刪除「${val}」？`)) return;
+  let items = JSON.parse(localStorage.getItem(storageKey) || '[]');
+  items = items.filter(v => v !== val);
+  localStorage.setItem(storageKey, JSON.stringify(items));
+  loadOptions(selectId, storageKey);
+  if (selectId === 'projName') updateProjBar();
+  else saveProject();
+  toast('已刪除');
+}
+// projDate change → 存檔
+const _pdEl = document.getElementById('projDate');
+if (_pdEl) _pdEl.addEventListener('input', saveProject);
+
+function switchPanel(name, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sec-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  el.classList.add('active');
+  if (name === 'export') renderExport();
+  if (name === 'table') renderTable();
+  if (name === 'paste') initPastePanel();
+}
+
+// 解析樁號為公尺數（純數字，例如 0、20、213.6）
+function parseStake(s) {
+  if (s === '' || s === null || s === undefined) return null;
+  const n = parseFloat(String(s).trim());
+  return isNaN(n) ? null : n;
+}
+
+function liveCalc() {
+  const stakeStr = document.getElementById('iStake').value;
+  const w = parseFloat(document.getElementById('iWidth').value);
+  const isFirst = rows.length === 0;
+
+  // 更新上一筆提示
+  const prevInfo = document.getElementById('prevRowInfo');
+  if (rows.length > 0) {
+    const last = rows[rows.length - 1];
+    document.getElementById('prevRowText').textContent = `樁位 ${last.stake}　寬度 ${last.width} M　累計 ${last.cumul.toFixed(2)} M²`;
+    prevInfo.style.display = 'block';
+  } else {
+    prevInfo.style.display = 'none';
+  }
+
+  const distDisplay = document.getElementById('autoDistDisplay');
+  const avgDisplay = document.getElementById('autoAvgDisplay');
+  const areaDisplay = document.getElementById('autoAreaDisplay');
+  const cumulRow = document.getElementById('autoCumulDisplay');
+  const cumulVal = document.getElementById('autoCumulVal');
+  const firstHint = document.getElementById('firstRowHint');
+
+  if (isFirst) {
+    firstHint.style.display = 'block';
+    distDisplay.textContent = '—';
+    avgDisplay.textContent = '—';
+    areaDisplay.textContent = '—';
+    cumulRow.style.display = 'none';
+    return;
+  }
+  firstHint.style.display = 'none';
+
+  const stakeVal = parseStake(stakeStr);
+  const prevStakeVal = parseStake(rows[rows.length - 1].stake);
+  const prevW = rows[rows.length - 1].width;
+
+  if (stakeVal !== null && prevStakeVal !== null) {
+    const dist = parseFloat((stakeVal - prevStakeVal).toFixed(3));
+    if (dist === 0) {
+      distDisplay.textContent = '0（同樁號）';
+      distDisplay.style.color = 'var(--text3)';
+      avgDisplay.textContent = '—';
+      areaDisplay.textContent = '0（僅記錄寬度）';
+      areaDisplay.style.color = 'var(--text3)';
+      cumulVal.textContent = rows[rows.length-1].cumul.toFixed(2) + ' M²（不變）';
+      cumulRow.style.display = 'flex';
+    } else if (dist > 0) {
+      distDisplay.textContent = dist.toFixed(2);
+      distDisplay.style.color = 'var(--blue)';
+      if (!isNaN(w) && w >= 0) {
+        const avgW = parseFloat(((w + prevW) / 2).toFixed(2));
+        const area = parseFloat((dist * avgW).toFixed(2));
+        const cumul = parseFloat((rows[rows.length-1].cumul + area).toFixed(2));
+        avgDisplay.textContent = avgW.toFixed(2);
+        areaDisplay.textContent = area.toFixed(2);
+        areaDisplay.style.color = 'var(--green)';
+        cumulVal.textContent = cumul.toFixed(2) + ' M²';
+        cumulRow.style.display = 'flex';
+      } else {
+        avgDisplay.textContent = '—';
+        areaDisplay.textContent = '請填寬度';
+        areaDisplay.style.color = 'var(--text3)';
+        cumulRow.style.display = 'none';
+      }
+    } else {
+      distDisplay.textContent = dist.toFixed(2) + '（樁號倒退）';
+      distDisplay.style.color = 'var(--red)';
+      avgDisplay.textContent = '—';
+      areaDisplay.textContent = '—';
+      cumulRow.style.display = 'none';
+    }
+  } else {
+    distDisplay.textContent = '—';
+    avgDisplay.textContent = '—';
+    areaDisplay.textContent = '—';
+    cumulRow.style.display = 'none';
+  }
+}
+
+function addRow() {
+  const stakeStr = document.getElementById('iStake').value;
+  const w = parseFloat(document.getElementById('iWidth').value);
+  const note = document.getElementById('iNote').value.trim();
+
+  if (stakeStr === '' || stakeStr === null) { toast('⚠️ 請填寫樁位'); return; }
+  if (isNaN(w) || w < 0) { toast('⚠️ 請填寫量測寬度'); return; }
+
+  let dist = '', avgW = '', area = 0, cumul = 0;
+
+  if (rows.length > 0) {
+    const last = rows[rows.length - 1];
+    const stakeVal = parseStake(stakeStr);
+    const prevVal = parseStake(last.stake);
+    if (stakeVal === null) { toast('⚠️ 樁位格式不正確，例如 0K+020.0'); return; }
+    dist = parseFloat((stakeVal - prevVal).toFixed(3));
+    if (dist === 0) {
+      // 同樁號：面積為0，只記錄這個寬度
+      avgW = '';
+      area = 0;
+      cumul = last.cumul;
+    } else {
+      avgW = parseFloat(((w + last.width) / 2).toFixed(2));
+      area = parseFloat((dist * avgW).toFixed(2));
+      cumul = parseFloat((last.cumul + area).toFixed(2));
+    }
+  } else {
+    // 第一筆：只記錄寬度，面積為 0
+    const stakeVal = parseStake(stakeStr);
+    if (stakeVal === null) { toast('⚠️ 樁位格式不正確，例如 0K+000.0'); return; }
+    cumul = 0;
+  }
+
+  const row = { id: Date.now(), stake: stakeStr, stakeVal: parseStake(stakeStr), dist, width: w, avgWidth: avgW, area, cumul, note };
+  rows.push(row);
+  save();
+
+  // 清空輸入
+  document.getElementById('iStake').value = '';
+  document.getElementById('iWidth').value = '';
+  document.getElementById('iNote').value = '';
+
+  // 重置顯示
+  document.getElementById('autoDistDisplay').textContent = '—';
+  document.getElementById('autoAvgDisplay').textContent = '—';
+  document.getElementById('autoAreaDisplay').textContent = '—';
+  document.getElementById('autoCumulDisplay').style.display = 'none';
+
+  renderAll();
+  liveCalc();
+
+  if (rows.length === 1) {
+    toast('✅ 第一筆已記錄！輸入下一個樁位開始計算面積');
+  } else if (dist === 0) {
+    toast('✅ 同樁號第二寬度已記錄（面積 0，累計不變）');
+  } else {
+    toast('✅ 面積 ' + area.toFixed(2) + ' M²　累計 ' + cumul.toFixed(2) + ' M²');
+  }
+}
+
+function save() {
+  localStorage.setItem('area_rows', JSON.stringify(rows));
+}
+
+function renderAll() {
+  updateTotals();
+  renderTable();
+}
+
+function updateTotals() {
+  const total = rows.reduce((s,r) => s + r.area, 0);
+  const cumul = rows.length ? rows[rows.length-1].cumul : 0;
+  document.getElementById('tCount').textContent = rows.length;
+  document.getElementById('tArea').textContent = total.toFixed(2);
+  document.getElementById('tCumul').textContent = cumul.toFixed(2);
+}
+
+function renderTable() {
+  const el = document.getElementById('dataRows');
+  if (rows.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div><div class="empty-text">尚無量測記錄<br><span style="font-size:12px">前往「新增量測」開始記錄</span></div></div>`;
+    document.getElementById('totalRow').style.display = 'none';
+    document.getElementById('swipeHint').style.display = 'none';
+    return;
+  }
+  el.innerHTML = rows.map(r => `
+    <div class="data-row" onclick="openModal(${r.id})">
+      <div class="td stake">${r.stake}</div>
+      <div class="td">${r.dist !== '' ? r.dist : '—'}</div>
+      <div class="td">${r.width}</div>
+      <div class="td">${r.avgWidth || '—'}</div>
+      <div class="td area">${r.area > 0 ? r.area.toFixed(2) : '—'}</div>
+      <div class="td cumul">${r.cumul > 0 ? r.cumul.toFixed(2) : '—'}</div>
+      <div class="td note">${r.note || ''}</div>
+    </div>`).join('');
+  const total = rows.reduce((s,r) => s + r.area, 0);
+  const cumul = rows.length ? rows[rows.length-1].cumul : 0;
+  document.getElementById('totalArea').textContent = total.toFixed(2);
+  document.getElementById('totalCumul').textContent = cumul.toFixed(2);
+  document.getElementById('totalRow').style.display = 'grid';
+  document.getElementById('swipeHint').style.display = 'block';
+}
+
+function openModal(id) {
+  currentId = id;
+  const r = rows.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('modalTitle').textContent = `樁位 ${r.stake}`;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-box"><div class="detail-box-label">量測寬度</div><div class="detail-box-val">${r.width} M</div></div>
+    <div class="detail-box"><div class="detail-box-label">支距（自動）</div><div class="detail-box-val">${r.dist !== '' ? r.dist + ' M' : '第一筆'}</div></div>
+    <div class="detail-box"><div class="detail-box-label">平均寬度（自動）</div><div class="detail-box-val">${r.avgWidth ? r.avgWidth + ' M' : '第一筆'}</div></div>
+    <div class="detail-box"><div class="detail-box-label">本筆面積（自動）</div><div class="detail-box-val accent">${r.area > 0 ? r.area.toFixed(2) + ' M²' : '—'}</div></div>
+    <div class="detail-box full"><div class="detail-box-label">累計面積</div><div class="detail-box-val green">${r.cumul > 0 ? r.cumul.toFixed(2) + ' M²' : '—'}</div></div>
+    ${r.note ? `<div class="detail-box full note-box"><div class="detail-box-label">備註</div><div class="detail-box-val">${r.note}</div></div>` : ''}
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) document.getElementById('modal').classList.remove('open');
+}
+
+function deleteRow() {
+  if (!confirm('確定刪除此筆記錄？')) return;
+  rows = rows.filter(r => r.id !== currentId);
+  // recalc cumul
+  let c = 0;
+  rows.forEach(r => { c = parseFloat((c + r.area).toFixed(2)); r.cumul = c; });
+  save(); renderAll(); liveCalc();
+  document.getElementById('modal').classList.remove('open');
+  toast('已刪除');
+}
+
+function renderExport() {
+  const total = rows.reduce((s,r) => s + r.area, 0);
+  const cumul = rows.length ? rows[rows.length-1].cumul : 0;
+  const widths = rows.map(r => r.width).filter(v => v !== null && v !== undefined && v !== '');
+  document.getElementById('eCount').textContent = rows.length;
+  document.getElementById('eTotalArea').textContent = total.toFixed(2);
+  document.getElementById('eMaxWidth').textContent = widths.length ? Math.max(...widths).toFixed(2) : '—';
+  document.getElementById('eAvgWidth').textContent = widths.length ? (widths.reduce((a,b)=>a+b,0)/widths.length).toFixed(2) : '—';
+
+  if (!rows.length) { document.getElementById('previewBox').textContent = '尚無資料'; return; }
+  const p = JSON.parse(localStorage.getItem('area_project') || '{}');
+  const seg = document.getElementById('projSeg')?.value || p.seg || '';
+
+  // 簡化格式：路段 + 樁號 + 寬度 + 面積合計
+  let txt = '';
+  if (seg) txt += `${seg}\n`;
+  rows.forEach(r => {
+    txt += `${r.stake} ${r.width}`;
+    if (r.note) txt += ` (${r.note})`;
+    txt += '\n';
+  });
+  txt += `面積合計 ${total.toFixed(2)} M²`;
+  document.getElementById('previewBox').textContent = txt;
+}
+
+function copyReport() {
+  const txt = document.getElementById('previewBox').textContent;
+  if (txt === '尚無資料') { toast('⚠️ 無資料可複製'); return; }
+  navigator.clipboard.writeText(txt).then(() => toast('✅ 已複製！可直接貼到 Line'));
+}
+
+function downloadXLSX() {
+  if (!rows.length) { toast('⚠️ 無資料'); return; }
+  const p = JSON.parse(localStorage.getItem('area_project') || '{}');
+  const seg = document.getElementById('projSeg').value || p.seg || '';
+  const dateStr = p.date || new Date().toISOString().split('T')[0];
+  const total = rows.reduce((s,r) => s + r.area, 0);
+  const finalCumul = rows.length ? rows[rows.length-1].cumul : 0;
+
+  // ── 用 ExcelJS-style 透過 SheetJS 手動建立帶格式的 workbook ──
+  // SheetJS 社群版不支援 cell style，改用 Python-style：先建好資料再用 openpyxl blob
+  // 改用純 SheetJS + 格式化數字方式產出，樣式由瀏覽器後處理
+  const wb = XLSX.utils.book_new();
+  const ws = {};
+  ws['!merges'] = [];
+  const R = (r,c) => XLSX.utils.encode_cell({r,c});
+
+  const S = (v, t, s) => ({ v, t: t||'s', s: s||{} });
+
+  // ── 標楷體樣式定義（SheetJS Pro only, 社群版寫入但不渲染） ──
+  const st = {
+    title:   { font:{name:'標楷體',sz:16,bold:true},  alignment:{horizontal:'center',vertical:'center'} },
+    label:   { font:{name:'標楷體',sz:12},             alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    value:   { font:{name:'標楷體',sz:12},             alignment:{horizontal:'left',  vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    valueC:  { font:{name:'標楷體',sz:12},             alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    hdr:     { font:{name:'Times New Roman',sz:12},    alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    hdrKai:  { font:{name:'標楷體',sz:12},             alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    segRow:  { font:{name:'標楷體',sz:12},             alignment:{horizontal:'left',  vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    dataA:   { font:{name:'Times New Roman',sz:12},    alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    dataN:   { font:{name:'Times New Roman',sz:12},    alignment:{horizontal:'right', vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    noteRed: { font:{name:'Times New Roman',sz:12,color:{rgb:'FF0000'}}, alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    totalL:  { font:{name:'標楷體',sz:12,bold:true},   alignment:{horizontal:'right', vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    totalV:  { font:{name:'Times New Roman',sz:12,bold:true}, alignment:{horizontal:'right',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+  };
+
+  const cell = (r, c, v, t, style) => {
+    const ref = R(r,c);
+    ws[ref] = { v, t: t||'s', s: style||{} };
+  };
+  const merge = (r1,c1,r2,c2) => ws['!merges'].push({s:{r:r1,c:c1},e:{r:r2,c:c2}});
+
+  // ── 列 1: 大標題 ──
+  cell(0,0,'施工前面積計算表','s',st.title);
+  merge(0,0,0,6);
+
+  // ── 列 2: 工程名稱 ──
+  cell(1,0,'工程名稱','s',st.label);
+  cell(1,1,p.name||'','s',st.value);
+  merge(1,1,1,6);
+
+  // ── 列 3: 承包廠商 + 監造單位 ──
+  cell(2,0,'承包廠商','s',st.label);
+  cell(2,1,p.vendor||'','s',st.valueC);
+  merge(2,1,2,3);
+  cell(2,4,'監造單位','s',st.label);
+  cell(2,5,p.super||'','s',st.valueC);
+  merge(2,5,2,6);
+
+  // ── 列 4: 施工地點 + 施工日期 ──
+  cell(3,0,'施工地點','s',st.label);
+  cell(3,1,seg,'s',st.valueC);
+  merge(3,1,3,3);
+  cell(3,4,'施工日期','s',st.label);
+  cell(3,5,dateStr,'s',st.valueC);
+  merge(3,5,3,6);
+
+  // ── 列 5: 欄位標題 ──
+  ['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註'].forEach((h,c) => {
+    const s = (c===0||c===6) ? st.hdrKai : st.hdr;
+    cell(4,c,h,'s',s);
+  });
+
+  // ── 資料列 (列 6+，A6路段標題列已移除) ──
+  const DR = 5;
+  rows.forEach((r,i) => {
+    const row = DR+i;
+    cell(row,0, r.stake,                          's', st.dataA);
+    cell(row,1, r.dist!==''?Number(r.dist):'',    r.dist!==''?'n':'s', st.dataN);
+    cell(row,2, Number(r.width),                  'n', st.dataN);
+    cell(row,3, r.avgWidth!==''?Number(r.avgWidth):'', r.avgWidth!==''?'n':'s', st.dataN);
+    cell(row,4, r.area>0?Number(r.area):'',       r.area>0?'n':'s', st.dataN);
+    cell(row,5, r.cumul>0?Number(r.cumul):'',     r.cumul>0?'n':'s', st.dataN);
+    const noteStyle = r.note ? st.noteRed : st.hdrKai;
+    cell(row,6, r.note||'', 's', noteStyle);
+  });
+
+  // ── 合計列 ──
+  const TR = DR + rows.length;
+  cell(TR,0,'合計總面積','s',st.totalL);
+  merge(TR,0,TR,4);
+  cell(TR,5, Number(total.toFixed(2)), 'n', st.totalV);
+  cell(TR,6,'M2','s',st.totalV);
+
+  // ── 欄寬（對應原版：A=11.875, B=14.125, C~G=13） ──
+  ws['!cols'] = [
+    {wch:12},{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13}
+  ];
+
+  // ── 列高：標題列 21，其餘預設 ──
+  ws['!rows'] = [{hpt:21*0.75*1.33}];
+
+  ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:TR,c:6}});
+
+  XLSX.utils.book_append_sheet(wb, ws, '面積計算表');
+  const fname = `施工前面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  toast('✅ Excel 已下載！格式對應公司原版');
+}
+
+function clearAll() {
+  if (!confirm('確定清除本路段所有量測記錄？')) return;
+  rows = [];
+  document.getElementById('iStake').value = '';
+  save(); renderAll(); liveCalc();
+  toast('已清除');
+}
+
+
+async function generateFormattedExcel() {
+  if (!rows.length) { toast('⚠️ 無資料可產生'); return; }
+
+  const btn = document.getElementById('fmtBtn');
+  const status = document.getElementById('fmtStatus');
+  const msg = document.getElementById('fmtMsg');
+  const bar = document.getElementById('fmtBar');
+  const barInner = document.getElementById('fmtBarInner');
+  btn.disabled = true;
+  btn.textContent = '⏳ 產生中...';
+  status.style.display = 'block';
+  bar.style.display = 'block';
+  const setMsg = (m, pct) => { msg.textContent = m; if (pct != null) barInner.style.width = pct + '%'; };
+
+  const p = JSON.parse(localStorage.getItem('area_project') || '{}');
+  const seg = document.getElementById('projSeg')?.value || p.seg || '';
+  const dateStr = p.date || new Date().toISOString().split('T')[0];
+  const total = rows.reduce((s, r) => s + r.area, 0);
+
+  try {
+    // ── 載入 ExcelJS ──
+    if (!window.ExcelJS) {
+      setMsg('📦 載入 ExcelJS...', 10);
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+    setMsg('🔧 建立工作表...', 30);
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('面積計算表');
+
+    // ── 欄寬 ──
+    ws.columns = [
+      { width: 12 }, { width: 14 }, { width: 13 },
+      { width: 13 }, { width: 13 }, { width: 13 }, { width: 13 }
+    ];
+
+    // ── 輔助函式 ──
+    const thin = { style: 'thin' };
+    const allBorder = { top: thin, bottom: thin, left: thin, right: thin };
+
+    function styleCell(cell, { font={}, align={}, border=true, fill=null } = {}) {
+      cell.font = { name: '標楷體', size: 12, ...font };
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: false, ...align };
+      if (border) cell.border = allBorder;
+      if (fill) cell.fill = fill;
+    }
+
+    // ── 列1: 大標題 ──
+    ws.getRow(1).height = 28;
+    const r1 = ws.getRow(1);
+    const t1 = r1.getCell(1);
+    t1.value = '施工前面積計算表';
+    styleCell(t1, { font: { name:'標楷體', size:16, bold:true }, border: false });
+    ws.mergeCells('A1:G1');
+
+    setMsg('🔧 填入工程資訊...', 45);
+
+    // ── 列2: 工程名稱 ──
+    ws.getRow(2).height = 18;
+    const r2 = ws.getRow(2);
+    const a2 = r2.getCell(1); a2.value = '工程名稱'; styleCell(a2);
+    const b2 = r2.getCell(2); b2.value = p.name||''; styleCell(b2, { align:{ horizontal:'left', vertical:'middle' } });
+    ws.mergeCells('B2:G2');
+    for (let c = 3; c <= 7; c++) styleCell(r2.getCell(c));
+
+    // ── 列3: 承包廠商 + 監造單位 ──
+    ws.getRow(3).height = 18;
+    const r3 = ws.getRow(3);
+    const a3 = r3.getCell(1); a3.value = '承包廠商'; styleCell(a3);
+    const b3 = r3.getCell(2); b3.value = p.vendor||''; styleCell(b3);
+    ws.mergeCells('B3:D3');
+    for (let c = 3; c <= 4; c++) styleCell(r3.getCell(c));
+    const e3 = r3.getCell(5); e3.value = '監造單位'; styleCell(e3);
+    const f3 = r3.getCell(6); f3.value = p.super||''; styleCell(f3);
+    ws.mergeCells('F3:G3');
+    styleCell(r3.getCell(7));
+
+    // ── 列4: 施工地點 + 施工日期 ──
+    ws.getRow(4).height = 18;
+    const r4 = ws.getRow(4);
+    const a4 = r4.getCell(1); a4.value = '施工地點'; styleCell(a4);
+    const b4 = r4.getCell(2); b4.value = seg; styleCell(b4);
+    ws.mergeCells('B4:D4');
+    for (let c = 3; c <= 4; c++) styleCell(r4.getCell(c));
+    const e4 = r4.getCell(5); e4.value = '施工日期'; styleCell(e4);
+    const f4 = r4.getCell(6); f4.value = dateStr; styleCell(f4);
+    ws.mergeCells('F4:G4');
+    styleCell(r4.getCell(7));
+
+    // ── 列5: 欄位標題 ──
+    ws.getRow(5).height = 18;
+    const headers = ['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註'];
+    const hFonts  = ['標楷體','標楷體','Times New Roman','Times New Roman','Times New Roman','Times New Roman','標楷體'];
+    headers.forEach((h, i) => {
+      const c = ws.getRow(5).getCell(i+1);
+      c.value = h;
+      styleCell(c, { font: { name: hFonts[i], size: 12 } });
+    });
+
+    setMsg('🔧 填入量測資料...', 65);
+
+    // ── 資料列 ──
+    rows.forEach((r, i) => {
+      const rowNum = 6 + i;
+      ws.getRow(rowNum).height = 16;
+      const dr = ws.getRow(rowNum);
+
+      const ca = dr.getCell(1); ca.value = r.stake;
+      styleCell(ca, { font:{ name:'Times New Roman', size:12 } });
+
+      const cb = dr.getCell(2); cb.value = r.dist !== '' ? Number(r.dist) : null;
+      styleCell(cb, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+
+      const cc = dr.getCell(3); cc.value = Number(r.width);
+      styleCell(cc, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+
+      const cd = dr.getCell(4); cd.value = r.avgWidth !== '' ? Number(r.avgWidth) : null;
+      styleCell(cd, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+
+      const ce = dr.getCell(5); ce.value = r.area > 0 ? Number(r.area) : null;
+      styleCell(ce, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+
+      const cf = dr.getCell(6); cf.value = r.cumul > 0 ? Number(r.cumul) : null;
+      styleCell(cf, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+
+      const cg = dr.getCell(7); cg.value = r.note || '';
+      const noteFont = r.note
+        ? { name:'Times New Roman', size:12, color:{ argb:'FFFF0000' } }
+        : { name:'Times New Roman', size:12 };
+      styleCell(cg, { font: noteFont });
+    });
+
+    // ── 合計列 ──
+    const TR = 6 + rows.length;
+    ws.getRow(TR).height = 18;
+    const trRow = ws.getRow(TR);
+    const ta = trRow.getCell(1);
+    ta.value = '合計總面積';
+    styleCell(ta, { font:{ name:'標楷體', size:12, bold:true }, align:{ horizontal:'right', vertical:'middle' } });
+    ws.mergeCells(`A${TR}:E${TR}`);
+    for (let c = 2; c <= 5; c++) styleCell(trRow.getCell(c), { font:{ name:'標楷體', size:12, bold:true } });
+
+    const tf = trRow.getCell(6);
+    tf.value = Number(total.toFixed(2));
+    styleCell(tf, { font:{ name:'Times New Roman', size:12, bold:true }, align:{ horizontal:'right', vertical:'middle' } });
+
+    const tg = trRow.getCell(7);
+    tg.value = 'M2';
+    styleCell(tg, { font:{ name:'Times New Roman', size:12, bold:true } });
+
+    setMsg('💾 寫出檔案...', 85);
+
+    // ── 輸出 ──
+    const arrayBuf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([arrayBuf], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `施工前面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    setMsg('✅ 完成！', 100);
+    setTimeout(() => { status.style.display = 'none'; barInner.style.width = '0%'; }, 2500);
+    toast('✅ 公司格式 Excel 已下載！');
+
+  } catch(err) {
+    setMsg('❌ 失敗：' + err.message, 0);
+    toast('⚠️ 產生失敗：' + err.message);
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 產生公司格式 Excel';
+  }
+}
+
+function downloadXLSXFallback(p, seg) {
+  const wb = XLSX.utils.book_new();
+  const wsData = [];
+  wsData.push(['施工前面積計算表','','','','','','']);
+  wsData.push(['工程名稱', p.name||'','','','','','']);
+  wsData.push(['承包廠商', p.vendor||'','','監造單位', p.super||'','']);
+  wsData.push(['施工地點', seg,'','','施工日期', p.date||'','']);
+  wsData.push(['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註']);
+  rows.forEach(r => wsData.push([
+    r.stake, r.dist!==''?Number(r.dist):'', Number(r.width),
+    r.avgWidth!==''?Number(r.avgWidth):'',
+    r.area>0?Number(r.area):'', r.cumul>0?Number(r.cumul):'', r.note||''
+  ]));
+  const total = rows.reduce((s,r)=>s+r.area,0);
+  wsData.push(['合計總面積','','','','',Number(total.toFixed(2)),'M2']);
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  const DR = 5;
+  rows.forEach((r,i) => { const ref = XLSX.utils.encode_cell({r:DR+i,c:0}); ws[ref]={v:r.stake,t:'s'}; });
+  ws['!merges'] = [
+    {s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:1},e:{r:1,c:6}},
+    {s:{r:2,c:1},e:{r:2,c:3}},{s:{r:2,c:5},e:{r:2,c:6}},
+    {s:{r:3,c:1},e:{r:3,c:3}},{s:{r:3,c:5},e:{r:3,c:6}},
+    {s:{r:5+rows.length,c:0},e:{r:5+rows.length,c:4}},
+  ];
+  ws['!cols'] = [{wch:14},{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13}];
+  XLSX.utils.book_append_sheet(wb, ws, '面積計算表');
+  XLSX.writeFile(wb, `施工前面積計算表_${(seg||'').replace(/\s/g,'')}_${p.date||'今日'}.xlsx`);
+}
+
+// ════ 貼上轉換功能 ════
+let pasteRows = [];
+
+// 將純數字樁位轉為 0K+000.0 格式，例如 213.6 → "0K+213.6"，1050 → "1K+050.0"
+function toStakeFormat(n) {
+  const km = Math.floor(n / 1000);
+  const m = parseFloat((n % 1000).toFixed(1));
+  const mStr = m % 1 === 0 ? m.toFixed(1) : String(m);
+  return `${km}K+${mStr}`;
+}
+
+function savePasteProject() {
+  // 同步選單與主工程資訊選單的選項
+}
+
+function initPastePanel() {
+  // 同步下拉選單選項（共用主頁面的選項清單）
+  ['proj_names','proj_vendors','proj_supers'].forEach((key, i) => {
+    const ids = ['pasteProjectName','pasteVendor','pasteSuper'];
+    const sel = document.getElementById(ids[i]);
+    if (!sel) return;
+    const items = JSON.parse(localStorage.getItem(key) || '[]');
+    while (sel.options.length > 1) sel.remove(1);
+    items.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      sel.appendChild(opt);
+    });
+  });
+  // 帶入主頁面目前選的值
+  const p = JSON.parse(localStorage.getItem('area_project') || '{}');
+  if (p.name) document.getElementById('pasteProjectName').value = p.name;
+  if (p.vendor) document.getElementById('pasteVendor').value = p.vendor;
+  if (p.super) document.getElementById('pasteSuper').value = p.super;
+  document.getElementById('pasteDate').value = p.date || new Date().toISOString().split('T')[0];
+}
+
+function parsePasteText() {
+  const raw = document.getElementById('pasteInput').value.trim();
+  const preview = document.getElementById('parsePreview');
+  const errorDiv = document.getElementById('parseError');
+  const btns = document.getElementById('parseBtns');
+  preview.style.display = 'none';
+  errorDiv.style.display = 'none';
+  btns.style.display = 'none';
+  pasteRows = [];
+
+  if (!raw) return;
+
+  const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
+  let seg = '';
+  const dataLines = [];
+
+  // 第一行若不是 "數字 數字" 格式，視為路段名稱
+  const firstNumTest = /^[\d.]+\s+[\d.]+/.test(lines[0]);
+  if (!firstNumTest && lines.length > 0) {
+    seg = lines[0];
+    dataLines.push(...lines.slice(1));
+  } else {
+    dataLines.push(...lines);
+  }
+
+  if (dataLines.length === 0) {
+    errorDiv.textContent = '⚠️ 未偵測到量測資料，請確認格式（每行：樁位 寬度）';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  const parsed = [];
+  const errors = [];
+  dataLines.forEach((line, i) => {
+    // 支援空格、逗號、Tab 分隔
+    const parts = line.split(/[\s,\t]+/).filter(Boolean);
+    if (parts.length < 2) {
+      errors.push(`第 ${i+1} 行格式錯誤：「${line}」`);
+      return;
+    }
+    const stake = parseFloat(parts[0]);
+    const width = parseFloat(parts[1]);
+    const note = parts.slice(2).join(' ');
+    if (isNaN(stake) || isNaN(width)) {
+      errors.push(`第 ${i+1} 行數字無法解析：「${line}」`);
+      return;
+    }
+    parsed.push({ stake, width, note });
+  });
+
+  if (errors.length > 0 && parsed.length === 0) {
+    errorDiv.textContent = errors.join('\n');
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  // 計算支距、平均寬度、面積、累計
+  let cumul = 0;
+  pasteRows = parsed.map((r, i) => {
+    let dist = '', avgWidth = '', area = 0;
+    if (i > 0) {
+      dist = parseFloat((r.stake - parsed[i-1].stake).toFixed(3));
+      avgWidth = parseFloat(((r.width + parsed[i-1].width) / 2).toFixed(2));
+      area = parseFloat((dist * avgWidth).toFixed(2));
+      cumul = parseFloat((cumul + area).toFixed(2));
+    }
+    return { ...r, dist, avgWidth, area, cumul };
+  });
+
+  const total = pasteRows.reduce((s, r) => s + r.area, 0);
+
+  // 顯示預覽
+  document.getElementById('parseSeg').textContent = seg || '（未填）';
+  document.getElementById('parseCount').textContent = pasteRows.length + ' 筆';
+  document.getElementById('parseTotal').textContent = total.toFixed(2) + ' M²';
+
+  // 小表格預覽
+  const tableDiv = document.getElementById('parseTable');
+  tableDiv.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:'JetBrains Mono',monospace;">
+        <tr style="background:#1A1D27;color:#fff;">
+          <th style="padding:5px 6px;text-align:center;">樁位</th>
+          <th style="padding:5px 6px;text-align:right;">支距</th>
+          <th style="padding:5px 6px;text-align:right;">寬度</th>
+          <th style="padding:5px 6px;text-align:right;">均寬</th>
+          <th style="padding:5px 6px;text-align:right;color:#F5A623;">面積</th>
+          <th style="padding:5px 6px;text-align:right;color:#F5A623;">累計</th>
+        </tr>
+        ${pasteRows.map((r,i) => `
+          <tr style="background:${i%2===0?'#fff':'#F7F8FA'};">
+            <td style="padding:4px 6px;text-align:center;">${toStakeFormat(r.stake)}</td>
+            <td style="padding:4px 6px;text-align:right;">${r.dist!==''?r.dist:'—'}</td>
+            <td style="padding:4px 6px;text-align:right;">${r.width}</td>
+            <td style="padding:4px 6px;text-align:right;">${r.avgWidth!==''?r.avgWidth:'—'}</td>
+            <td style="padding:4px 6px;text-align:right;font-weight:700;">${r.area>0?r.area.toFixed(2):'—'}</td>
+            <td style="padding:4px 6px;text-align:right;font-weight:700;color:#E67E22;">${r.cumul>0?r.cumul.toFixed(2):'—'}</td>
+          </tr>`).join('')}
+        <tr style="background:#1A1D27;color:#fff;">
+          <td colspan="4" style="padding:6px;text-align:right;font-weight:700;">合計</td>
+          <td colspan="2" style="padding:6px;text-align:right;font-weight:700;color:#F5A623;">${total.toFixed(2)} M²</td>
+        </tr>
+      </table>
+    </div>`;
+
+  preview.style.display = 'block';
+  btns.style.display = 'flex';
+
+  if (errors.length > 0) {
+    errorDiv.textContent = '⚠️ 部分行解析失敗（已略過）：\n' + errors.join('\n');
+    errorDiv.style.display = 'block';
+  }
+
+  // 儲存 seg 供下載用
+  pasteRows._seg = seg;
+}
+
+function downloadPasteXLSX(type) {
+  if (!pasteRows.length) { toast('⚠️ 尚未解析到資料'); return; }
+
+  const seg = pasteRows._seg || document.getElementById('projSeg')?.value || '';
+  const p = {
+    name:   document.getElementById('pasteProjectName').value,
+    vendor: document.getElementById('pasteVendor').value,
+    super:  document.getElementById('pasteSuper').value,
+    date:   document.getElementById('pasteDate').value,
+    seg
+  };
+  const total = pasteRows.reduce((s,r) => s + r.area, 0);
+  const dateStr = p.date || new Date().toISOString().split('T')[0];
+  const fname = `施工前面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
+
+  if (type === 'simple') {
+    // 簡易版
+    const wsData = [
+      ['施工前面積計算表','','','','','',''],
+      ['工程名稱', p.name||'','','','','',''],
+      ['承包廠商', p.vendor||'','','監造單位', p.super||'',''],
+      ['施工地點', seg,'','','施工日期', dateStr,''],
+      ['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註'],
+      ...pasteRows.map(r => [
+        toStakeFormat(r.stake),
+        r.dist!==''?Number(r.dist):'',
+        Number(r.width),
+        r.avgWidth!==''?Number(r.avgWidth):'',
+        r.area>0?Number(r.area):'',
+        r.cumul>0?Number(r.cumul):'',
+        r.note||''
+      ]),
+      ['合計總面積','','','','', Number(total.toFixed(2)), 'M2']
+    ];
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const DR = 5;
+    pasteRows.forEach((r,i) => {
+      const ref = XLSX.utils.encode_cell({r:DR+i,c:0});
+      ws[ref] = {v: toStakeFormat(r.stake), t:'s'};
+    });
+    ws['!merges'] = [
+      {s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:1},e:{r:1,c:6}},
+      {s:{r:2,c:1},e:{r:2,c:3}},{s:{r:2,c:5},e:{r:2,c:6}},
+      {s:{r:3,c:1},e:{r:3,c:3}},{s:{r:3,c:5},e:{r:3,c:6}},
+      {s:{r:5+pasteRows.length,c:0},e:{r:5+pasteRows.length,c:4}},
+    ];
+    ws['!cols'] = [{wch:14},{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13}];
+    XLSX.utils.book_append_sheet(wb, ws, '面積計算表');
+    XLSX.writeFile(wb, fname);
+    toast('✅ 簡易 Excel 已下載！');
+
+  } else {
+    // 公司格式版：用 ExcelJS
+    downloadPasteFormatted(p, seg, dateStr, fname, total);
+  }
+}
+
+async function downloadPasteFormatted(p, seg, dateStr, fname, total) {
+  try {
+    if (!window.ExcelJS) {
+      toast('⏳ 載入格式引擎...');
+      await new Promise((res,rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('面積計算表');
+    ws.columns = [{width:12},{width:14},{width:13},{width:13},{width:13},{width:13},{width:13}];
+
+    const thin = {style:'thin'};
+    const border = {top:thin,bottom:thin,left:thin,right:thin};
+    function sc(cell, font={}, align={}, hasBorder=true) {
+      cell.font = {name:'標楷體',size:12,...font};
+      cell.alignment = {horizontal:'center',vertical:'middle',...align};
+      if (hasBorder) cell.border = border;
+    }
+
+    ws.getRow(1).height = 28;
+    const t1 = ws.getRow(1).getCell(1); t1.value='施工前面積計算表';
+    sc(t1,{name:'標楷體',size:16,bold:true},{},false); ws.mergeCells('A1:G1');
+
+    ws.getRow(2).height = 18;
+    ws.getRow(2).getCell(1).value='工程名稱'; sc(ws.getRow(2).getCell(1));
+    ws.getRow(2).getCell(2).value=p.name||''; sc(ws.getRow(2).getCell(2),{},{horizontal:'left',vertical:'middle'});
+    ws.mergeCells('B2:G2'); for(let c=3;c<=7;c++) sc(ws.getRow(2).getCell(c));
+
+    ws.getRow(3).height=18;
+    ws.getRow(3).getCell(1).value='承包廠商'; sc(ws.getRow(3).getCell(1));
+    ws.getRow(3).getCell(2).value=p.vendor||''; sc(ws.getRow(3).getCell(2));
+    ws.mergeCells('B3:D3'); for(let c=3;c<=4;c++) sc(ws.getRow(3).getCell(c));
+    ws.getRow(3).getCell(5).value='監造單位'; sc(ws.getRow(3).getCell(5));
+    ws.getRow(3).getCell(6).value=p.super||''; sc(ws.getRow(3).getCell(6));
+    ws.mergeCells('F3:G3'); sc(ws.getRow(3).getCell(7));
+
+    ws.getRow(4).height=18;
+    ws.getRow(4).getCell(1).value='施工地點'; sc(ws.getRow(4).getCell(1));
+    ws.getRow(4).getCell(2).value=seg; sc(ws.getRow(4).getCell(2));
+    ws.mergeCells('B4:D4'); for(let c=3;c<=4;c++) sc(ws.getRow(4).getCell(c));
+    ws.getRow(4).getCell(5).value='施工日期'; sc(ws.getRow(4).getCell(5));
+    ws.getRow(4).getCell(6).value=dateStr; sc(ws.getRow(4).getCell(6));
+    ws.mergeCells('F4:G4'); sc(ws.getRow(4).getCell(7));
+
+    ws.getRow(5).height=18;
+    ['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註'].forEach((h,i) => {
+      const c = ws.getRow(5).getCell(i+1);
+      c.value = h;
+      sc(c,{name:(i===0||i===6)?'標楷體':'Times New Roman',size:12});
+    });
+
+    pasteRows.forEach((r,i) => {
+      const rn = 6+i; ws.getRow(rn).height=16;
+      const dr = ws.getRow(rn);
+      const ca=dr.getCell(1); ca.value=toStakeFormat(r.stake); sc(ca,{name:'Times New Roman',size:12});
+      const cb=dr.getCell(2); cb.value=r.dist!==''?Number(r.dist):null; sc(cb,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+      const cc=dr.getCell(3); cc.value=Number(r.width); sc(cc,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+      const cd=dr.getCell(4); cd.value=r.avgWidth!==''?Number(r.avgWidth):null; sc(cd,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+      const ce=dr.getCell(5); ce.value=r.area>0?Number(r.area):null; sc(ce,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+      const cf=dr.getCell(6); cf.value=r.cumul>0?Number(r.cumul):null; sc(cf,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+      const cg=dr.getCell(7); cg.value=r.note||'';
+      sc(cg,{name:'Times New Roman',size:12,...(r.note?{color:{argb:'FFFF0000'}}:{})});
+    });
+
+    const TR = 6+pasteRows.length; ws.getRow(TR).height=18;
+    const ta=ws.getRow(TR).getCell(1); ta.value='合計總面積';
+    sc(ta,{name:'標楷體',size:12,bold:true},{horizontal:'right',vertical:'middle'});
+    ws.mergeCells(`A${TR}:E${TR}`); for(let c=2;c<=5;c++) sc(ws.getRow(TR).getCell(c),{name:'標楷體',size:12,bold:true});
+    const tf=ws.getRow(TR).getCell(6); tf.value=Number(total.toFixed(2));
+    sc(tf,{name:'Times New Roman',size:12,bold:true},{horizontal:'right',vertical:'middle'});
+    const tg=ws.getRow(TR).getCell(7); tg.value='M2';
+    sc(tg,{name:'Times New Roman',size:12,bold:true});
+
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download=fname; a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ 公司格式 Excel 已下載！');
+  } catch(err) {
+    toast('⚠️ 產生失敗：'+err.message);
+    console.error(err);
+  }
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+</script>
+</body>
+</html>
