@@ -1184,25 +1184,61 @@ function downloadXLSX() {
   });
 
   // ── 資料列 (列 6+，A6路段標題列已移除) ──
-  const DR = 5;
-  rows.forEach((r,i) => {
-    const row = DR+i;
-    cell(row,0, r.stake,                          's', st.dataA);
-    cell(row,1, r.dist!==''?Number(r.dist):'',    r.dist!==''?'n':'s', st.dataN);
-    cell(row,2, Number(r.width),                  'n', st.dataN);
-    cell(row,3, r.avgWidth!==''?Number(r.avgWidth):'', r.avgWidth!==''?'n':'s', st.dataN);
-    cell(row,4, r.area>0?Number(r.area):'',       r.area>0?'n':'s', st.dataN);
-    cell(row,5, r.cumul>0?Number(r.cumul):'',     r.cumul>0?'n':'s', st.dataN);
+  const DR = 5;  // 0-based → Excel row 6
+  rows.forEach((r, i) => {
+    const row = DR + i;
+    const exRow = row + 1;       // Excel 1-based 列號
+    const exPrev = exRow - 1;    // 上一列 Excel 列號
+
+    // A: 樁位（存純數字，用自訂格式顯示 0K+000.0）
+    ws[R(row,0)] = { v: Number(r.stake), t:'n', z:'"0K+"000.0', s: st.dataA };
+
+    // B: 支距 = 本樁位 - 上樁位（第一筆空白）
+    if (i === 0) {
+      cell(row, 1, '', 's', st.dataN);
+    } else {
+      ws[R(row,1)] = { f: `A${exRow}-A${exPrev}`, t:'n', s: st.dataN };
+    }
+
+    // C: 寬度（手填，直接寫入數值）
+    cell(row, 2, Number(r.width), 'n', st.dataN);
+
+    // D: 平均寬度 = (本列寬度 + 上列寬度) / 2（第一筆空白）
+    if (i === 0) {
+      cell(row, 3, '', 's', st.dataN);
+    } else {
+      ws[R(row,3)] = { f: `(C${exRow}+C${exPrev})/2`, t:'n', s: st.dataN };
+    }
+
+    // E: 面積 = 支距 × 平均寬度（第一筆空白）
+    if (i === 0) {
+      cell(row, 4, '', 's', st.dataN);
+    } else {
+      ws[R(row,4)] = { f: `ROUND(B${exRow}*D${exRow},2)`, t:'n', s: st.dataN };
+    }
+
+    // F: 累計面積（第一筆 = 0，之後 = 上列累計 + 本列面積）
+    if (i === 0) {
+      cell(row, 5, '', 's', st.dataN);
+    } else if (i === 1) {
+      ws[R(row,5)] = { f: `E${exRow}`, t:'n', s: st.dataN };
+    } else {
+      ws[R(row,5)] = { f: `F${exPrev}+E${exRow}`, t:'n', s: st.dataN };
+    }
+
+    // G: 備註
     const noteStyle = r.note ? st.noteRed : st.hdrKai;
-    cell(row,6, r.note||'', 's', noteStyle);
+    cell(row, 6, r.note||'', 's', noteStyle);
   });
 
   // ── 合計列 ──
   const TR = DR + rows.length;
-  cell(TR,0,'合計總面積','s',st.totalL);
-  merge(TR,0,TR,4);
-  cell(TR,5, Number(total.toFixed(2)), 'n', st.totalV);
-  cell(TR,6,'M2','s',st.totalV);
+  const firstDataRow = DR + 2;        // 面積從第二筆才有
+  const lastDataRow  = DR + rows.length;
+  cell(TR, 0, '合計總面積', 's', st.totalL);
+  merge(TR, 0, TR, 4);
+  ws[R(TR,5)] = { f: `SUM(E${firstDataRow}:E${lastDataRow})`, t:'n', s: st.totalV };
+  cell(TR, 6, 'M2', 's', st.totalV);
 
   // ── 欄寬（對應原版：A=11.875, B=14.125, C~G=13） ──
   ws['!cols'] = [
@@ -1340,25 +1376,41 @@ async function generateFormattedExcel() {
       const rowNum = 6 + i;
       ws.getRow(rowNum).height = 16;
       const dr = ws.getRow(rowNum);
+      const prevRow = rowNum - 1;
 
-      const ca = dr.getCell(1); ca.value = r.stake;
+      // A: 樁位（存純數字，用自訂格式顯示 0K+000.0）
+      const ca = dr.getCell(1);
+      ca.value = Number(r.stake);
+      ca.numFmt = '"0K+"000.0';
       styleCell(ca, { font:{ name:'Times New Roman', size:12 } });
 
-      const cb = dr.getCell(2); cb.value = r.dist !== '' ? Number(r.dist) : null;
+      // B: 支距（公式）
+      const cb = dr.getCell(2);
+      cb.value = i === 0 ? null : { formula: `A${rowNum}-A${prevRow}` };
       styleCell(cb, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
 
+      // C: 寬度（手填）
       const cc = dr.getCell(3); cc.value = Number(r.width);
       styleCell(cc, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
 
-      const cd = dr.getCell(4); cd.value = r.avgWidth !== '' ? Number(r.avgWidth) : null;
+      // D: 平均寬度（公式）
+      const cd = dr.getCell(4);
+      cd.value = i === 0 ? null : { formula: `(C${rowNum}+C${prevRow})/2` };
       styleCell(cd, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
 
-      const ce = dr.getCell(5); ce.value = r.area > 0 ? Number(r.area) : null;
+      // E: 面積（公式）
+      const ce = dr.getCell(5);
+      ce.value = i === 0 ? null : { formula: `ROUND(B${rowNum}*D${rowNum},2)` };
       styleCell(ce, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
 
-      const cf = dr.getCell(6); cf.value = r.cumul > 0 ? Number(r.cumul) : null;
+      // F: 累計面積（公式）
+      const cf = dr.getCell(6);
+      if (i === 0)      cf.value = null;
+      else if (i === 1) cf.value = { formula: `E${rowNum}` };
+      else              cf.value = { formula: `F${prevRow}+E${rowNum}` };
       styleCell(cf, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
 
+      // G: 備註
       const cg = dr.getCell(7); cg.value = r.note || '';
       const noteFont = r.note
         ? { name:'Times New Roman', size:12, color:{ argb:'FFFF0000' } }
@@ -1368,6 +1420,8 @@ async function generateFormattedExcel() {
 
     // ── 合計列 ──
     const TR = 6 + rows.length;
+    const firstData = 7;   // 面積從第二筆 row 7 開始
+    const lastData  = TR - 1;
     ws.getRow(TR).height = 18;
     const trRow = ws.getRow(TR);
     const ta = trRow.getCell(1);
@@ -1377,7 +1431,7 @@ async function generateFormattedExcel() {
     for (let c = 2; c <= 5; c++) styleCell(trRow.getCell(c), { font:{ name:'標楷體', size:12, bold:true } });
 
     const tf = trRow.getCell(6);
-    tf.value = Number(total.toFixed(2));
+    tf.value = { formula: `SUM(E${firstData}:E${lastData})` };
     styleCell(tf, { font:{ name:'Times New Roman', size:12, bold:true }, align:{ horizontal:'right', vertical:'middle' } });
 
     const tg = trRow.getCell(7);
@@ -1442,12 +1496,13 @@ function downloadXLSXFallback(p, seg) {
 // ════ 貼上轉換功能 ════
 let pasteRows = [];
 
-// 將純數字樁位轉為 0K+000.0 格式，例如 213.6 → "0K+213.6"，1050 → "1K+050.0"
+// 將純數字樁位轉為 0K+000.0 格式，例如 10 → "0K+010.0"，213.6 → "0K+213.6"，1050 → "1K+050.0"
 function toStakeFormat(n) {
   const km = Math.floor(n / 1000);
   const m = parseFloat((n % 1000).toFixed(1));
-  const mStr = m % 1 === 0 ? m.toFixed(1) : String(m);
-  return `${km}K+${mStr}`;
+  const intPart = Math.floor(m);
+  const decPart = Math.round((m - intPart) * 10);
+  return `${km}K+${String(intPart).padStart(3,'0')}.${decPart}`;
 }
 
 function savePasteProject() {
@@ -1609,38 +1664,55 @@ function downloadPasteXLSX(type) {
   const fname = `施工前面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
 
   if (type === 'simple') {
-    // 簡易版
-    const wsData = [
+    const wb = XLSX.utils.book_new();
+    const ws = {};
+    ws['!merges'] = [];
+    const R = (r,c) => XLSX.utils.encode_cell({r,c});
+
+    // 標頭列（固定值）
+    const headers = [
       ['施工前面積計算表','','','','','',''],
       ['工程名稱', p.name||'','','','','',''],
       ['承包廠商', p.vendor||'','','監造單位', p.super||'',''],
       ['施工地點', seg,'','','施工日期', dateStr,''],
       ['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註'],
-      ...pasteRows.map(r => [
-        toStakeFormat(r.stake),
-        r.dist!==''?Number(r.dist):'',
-        Number(r.width),
-        r.avgWidth!==''?Number(r.avgWidth):'',
-        r.area>0?Number(r.area):'',
-        r.cumul>0?Number(r.cumul):'',
-        r.note||''
-      ]),
-      ['合計總面積','','','','', Number(total.toFixed(2)), 'M2']
     ];
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    const DR = 5;
-    pasteRows.forEach((r,i) => {
-      const ref = XLSX.utils.encode_cell({r:DR+i,c:0});
-      ws[ref] = {v: toStakeFormat(r.stake), t:'s'};
+    headers.forEach((row, ri) => {
+      row.forEach((v, ci) => { ws[R(ri,ci)] = {v, t:'s'}; });
     });
+
+    // 資料列（B/D/E/F 帶公式）
+    const DR = 5;
+    pasteRows.forEach((r, i) => {
+      const row = DR + i;
+      const exRow = row + 1;
+      const exPrev = exRow - 1;
+
+      ws[R(row,0)] = {v: Number(r.stake), t:'n', z:'"0K+"000.0'};
+      ws[R(row,1)] = i === 0 ? {v:'', t:'s'} : {f:`A${exRow}-A${exPrev}`, t:'n'};
+      ws[R(row,2)] = {v: Number(r.width), t:'n'};
+      ws[R(row,3)] = i === 0 ? {v:'', t:'s'} : {f:`(C${exRow}+C${exPrev})/2`, t:'n'};
+      ws[R(row,4)] = i === 0 ? {v:'', t:'s'} : {f:`ROUND(B${exRow}*D${exRow},2)`, t:'n'};
+      if      (i === 0) ws[R(row,5)] = {v:'', t:'s'};
+      else if (i === 1) ws[R(row,5)] = {f:`E${exRow}`, t:'n'};
+      else              ws[R(row,5)] = {f:`F${exPrev}+E${exRow}`, t:'n'};
+      ws[R(row,6)] = {v: r.note||'', t:'s'};
+    });
+
+    // 合計列
+    const TR = DR + pasteRows.length;
+    ws[R(TR,0)] = {v:'合計總面積', t:'s'};
+    ws[R(TR,5)] = {f:`SUM(E${DR+2}:E${TR})`, t:'n'};
+    ws[R(TR,6)] = {v:'M2', t:'s'};
+
     ws['!merges'] = [
       {s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:1},e:{r:1,c:6}},
       {s:{r:2,c:1},e:{r:2,c:3}},{s:{r:2,c:5},e:{r:2,c:6}},
       {s:{r:3,c:1},e:{r:3,c:3}},{s:{r:3,c:5},e:{r:3,c:6}},
-      {s:{r:5+pasteRows.length,c:0},e:{r:5+pasteRows.length,c:4}},
+      {s:{r:TR,c:0},e:{r:TR,c:4}},
     ];
     ws['!cols'] = [{wch:14},{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13}];
+    ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:TR,c:6}});
     XLSX.utils.book_append_sheet(wb, ws, '面積計算表');
     XLSX.writeFile(wb, fname);
     toast('✅ 簡易 Excel 已下載！');
@@ -1709,12 +1781,41 @@ async function downloadPasteFormatted(p, seg, dateStr, fname, total) {
     pasteRows.forEach((r,i) => {
       const rn = 6+i; ws.getRow(rn).height=16;
       const dr = ws.getRow(rn);
-      const ca=dr.getCell(1); ca.value=toStakeFormat(r.stake); sc(ca,{name:'Times New Roman',size:12});
-      const cb=dr.getCell(2); cb.value=r.dist!==''?Number(r.dist):null; sc(cb,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
-      const cc=dr.getCell(3); cc.value=Number(r.width); sc(cc,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
-      const cd=dr.getCell(4); cd.value=r.avgWidth!==''?Number(r.avgWidth):null; sc(cd,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
-      const ce=dr.getCell(5); ce.value=r.area>0?Number(r.area):null; sc(ce,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
-      const cf=dr.getCell(6); cf.value=r.cumul>0?Number(r.cumul):null; sc(cf,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+      const prev = rn - 1;
+
+      // A: 樁位（存純數字，自訂格式顯示 0K+000.0）
+      const ca=dr.getCell(1);
+      ca.value = Number(r.stake);
+      ca.numFmt = '"0K+"000.0';
+      sc(ca,{name:'Times New Roman',size:12});
+
+      // B: 支距（公式）
+      const cb=dr.getCell(2);
+      cb.value = i===0 ? null : {formula:`A${rn}-A${prev}`};
+      sc(cb,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+
+      // C: 寬度（手填）
+      const cc=dr.getCell(3); cc.value=Number(r.width);
+      sc(cc,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+
+      // D: 平均寬度（公式）
+      const cd=dr.getCell(4);
+      cd.value = i===0 ? null : {formula:`(C${rn}+C${prev})/2`};
+      sc(cd,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+
+      // E: 面積（公式）
+      const ce=dr.getCell(5);
+      ce.value = i===0 ? null : {formula:`ROUND(B${rn}*D${rn},2)`};
+      sc(ce,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+
+      // F: 累計面積（公式）
+      const cf=dr.getCell(6);
+      if      (i===0) cf.value = null;
+      else if (i===1) cf.value = {formula:`E${rn}`};
+      else            cf.value = {formula:`F${prev}+E${rn}`};
+      sc(cf,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+
+      // G: 備註
       const cg=dr.getCell(7); cg.value=r.note||'';
       sc(cg,{name:'Times New Roman',size:12,...(r.note?{color:{argb:'FFFF0000'}}:{})});
     });
@@ -1723,8 +1824,12 @@ async function downloadPasteFormatted(p, seg, dateStr, fname, total) {
     const ta=ws.getRow(TR).getCell(1); ta.value='合計總面積';
     sc(ta,{name:'標楷體',size:12,bold:true},{horizontal:'right',vertical:'middle'});
     ws.mergeCells(`A${TR}:E${TR}`); for(let c=2;c<=5;c++) sc(ws.getRow(TR).getCell(c),{name:'標楷體',size:12,bold:true});
-    const tf=ws.getRow(TR).getCell(6); tf.value=Number(total.toFixed(2));
+
+    // 合計面積（公式）
+    const tf=ws.getRow(TR).getCell(6);
+    tf.value = {formula:`SUM(E7:E${TR-1})`};
     sc(tf,{name:'Times New Roman',size:12,bold:true},{horizontal:'right',vertical:'middle'});
+
     const tg=ws.getRow(TR).getCell(7); tg.value='M2';
     sc(tg,{name:'Times New Roman',size:12,bold:true});
 
