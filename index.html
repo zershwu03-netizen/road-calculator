@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>施工前面積計算表</title>
+<title>面積計算表</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -357,6 +357,18 @@ body {
   cursor: pointer; white-space: nowrap;
 }
 
+/* ── 手孔調查勾選 ── */
+.sv-check-label {
+  display:flex; align-items:center; gap:6px;
+  background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:8px; padding:8px 10px; cursor:pointer;
+  font-size:13px; font-weight:500; color:var(--text); transition:all 0.15s;
+}
+.sv-check-label:has(input:checked) {
+  background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:700;
+}
+.sv-check-label input { accent-color:var(--accent); width:15px; height:15px; cursor:pointer; }
+
 /* ── 匯出區塊嵌入分隔線 ── */
 .export-divider {
   margin: 8px 0 4px;
@@ -372,7 +384,7 @@ body {
     <div class="header-logo">
       <div class="logo-icon">🚧</div>
       <div>
-        <div class="header-title">施工前面積計算表</div>
+        <div class="header-title">面積計算表</div>
         <div class="header-sub">ROAD AREA CALCULATOR</div>
       </div>
     </div>
@@ -466,6 +478,8 @@ body {
 <div class="section-tabs" id="secTabs">
   <div class="sec-tab active" onclick="switchPanel('input',this)">➕ 新增量測</div>
   <div class="sec-tab" onclick="switchPanel('table',this)">📋 記錄表格</div>
+  <div class="sec-tab" onclick="switchPanel('manhole',this)">🕳️ 施工後人孔</div>
+  <div class="sec-tab" onclick="switchPanel('survey',this)">📋 人孔調查</div>
   <div class="sec-tab" onclick="switchPanel('paste',this)">📥 貼上轉換</div>
 </div>
 
@@ -650,6 +664,218 @@ body {
   </div>
 </div>
 
+<!-- ════ MANHOLE PANEL ════ -->
+<div class="panel" id="panel-manhole">
+  <div class="input-section">
+
+    <!-- 輸入卡片 -->
+    <div class="input-card">
+      <div class="input-card-title" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:6px;"><span>🕳️</span> 新增人手孔記錄</div>
+        <button onclick="clearManhole()" title="清除所有人手孔記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
+      </div>
+
+      <!-- 路段名稱 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>路段名稱 <span style="color:var(--text3);font-size:10px;font-weight:400">（選填，留空繼續上一路段）</span></label>
+          <input id="mhSeg" placeholder="例：民族路273巷" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="irow">
+        <!-- 樁號 -->
+        <div class="ifield">
+          <label>樁號（公尺）</label>
+          <div class="unit-wrap">
+            <input type="number" class="mono" id="mhStake" placeholder="1、12、195" min="0" step="0.1" inputmode="decimal" oninput="mhLiveCalc()">
+            <span class="unit">m</span>
+          </div>
+        </div>
+        <!-- 相對位置 -->
+        <div class="ifield" style="max-width:110px;">
+          <label>相對位置</label>
+          <input id="mhPos" placeholder="L1、R2…" autocomplete="off" style="font-family:'JetBrains Mono',monospace;font-size:14px;" oninput="mhLiveCalc()">
+          <div style="display:flex;gap:4px;margin-top:5px;">
+            <button id="btnL" onclick="setPosPrefix('L')" style="flex:1;padding:5px 0;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;">L1</button>
+            <button id="btnR" onclick="setPosPrefix('R')" style="flex:1;padding:5px 0;background:var(--accent-light);color:var(--accent);border:1.5px solid rgba(230,126,34,0.35);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;">R1</button>
+            <button onclick="resetPosCounter()" title="重置計數" style="padding:5px 7px;background:var(--surface2);color:var(--text3);border:1.5px solid var(--border2);border-radius:6px;font-size:12px;cursor:pointer;">↺</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="irow">
+        <!-- 長度 -->
+        <div class="ifield">
+          <label>長度 (M)</label>
+          <div class="unit-wrap">
+            <input type="number" id="mhLen" placeholder="0.6" step="0.1" inputmode="decimal" oninput="mhLiveCalc()">
+            <span class="unit">M</span>
+          </div>
+        </div>
+        <!-- 寬度 -->
+        <div class="ifield">
+          <label>寬度 (M)</label>
+          <div class="unit-wrap">
+            <input type="number" id="mhWid" placeholder="0.6" step="0.1" inputmode="decimal" oninput="mhLiveCalc()">
+            <span class="unit">M</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 管線單位 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>管線單位</label>
+          <div class="combo-wrap">
+            <select id="mhUnit" class="combo-select" style="font-size:15px;padding:10px 36px 10px 10px;">
+              <option value="">請選擇...</option>
+              <option value="台電">台電</option>
+              <option value="中華電信">中華電信</option>
+              <option value="瓦斯">瓦斯</option>
+              <option value="制水閥">制水閥</option>
+              <option value="汙水">汙水</option>
+              <option value="雨水">雨水</option>
+              <option value="消防">消防</option>
+              <option value="數位天空">數位天空</option>
+              <option value="其他">其他</option>
+            </select>
+            <span class="combo-arrow">▼</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 自動計算預覽（隱藏） -->
+      <div style="display:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin:10px 0;">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px;">⚙️ 自動計算</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">本筆面積</div>
+            <div id="mhAreaDisplay" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--green);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M²</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">加入後累計</div>
+            <div id="mhCumulDisplay" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--accent);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M²</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-add" onclick="addManholeRow()">✅ 確認加入記錄</button>
+    </div>
+
+    <!-- 人手孔統計 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:var(--surface);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;border:1.5px solid var(--border);">
+        <div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:0.08em;">筆數</div>
+        <div id="mhCount" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);">0</div>
+        <div style="font-size:9px;color:var(--text3);">筆</div>
+      </div>
+      <div style="background:var(--surface);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;border:1.5px solid var(--border);">
+        <div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:0.08em;">累計面積</div>
+        <div id="mhTotalDisplay" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);">0.00</div>
+        <div style="font-size:9px;color:var(--text3);">M²</div>
+      </div>
+    </div>
+
+    <!-- 人手孔記錄表 -->
+    <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:72px 52px 48px 48px 58px 64px 60px;background:linear-gradient(135deg,#1A1D27,#2E3450);padding:8px 6px;gap:2px;">
+        <div class="th">樁號</div>
+        <div class="th">位置</div>
+        <div class="th">長(M)</div>
+        <div class="th">寬(M)</div>
+        <div class="th accent">面積M²</div>
+        <div class="th accent">累計M²</div>
+        <div class="th">管線</div>
+      </div>
+      <div id="mhRows">
+        <div class="empty-state">
+          <div class="empty-icon">🕳️</div>
+          <div class="empty-text">尚無人手孔記錄<br><span style="font-size:12px">填寫上方資料後加入</span></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 匯出按鈕 -->
+    <div style="background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📤 匯出人手孔報表</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn" onclick="copyManholeToLine()" style="background:#06C755;color:#fff;font-size:14px;font-weight:700;border:none;">💬 複製 LINE 格式</button>
+        <div id="mhLinePreview" onclick="copyLineText(this)" style="display:none;background:#F0F2F5;border-radius:8px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);white-space:pre-wrap;line-height:1.9;border:1.5px solid var(--border);cursor:pointer;user-select:all;" title="點擊複製"></div>
+        <button class="btn btn-blue" onclick="downloadManholeXLSX('simple')">⬇ 簡易 Excel</button>
+        <button class="btn btn-primary" onclick="downloadManholeXLSX('formatted')" style="background:linear-gradient(135deg,#27AE60,#1e8449);">🚀 產生公司格式 Excel</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════ SURVEY PANEL ════ -->
+<div class="panel" id="panel-survey">
+  <div class="input-section">
+
+    <div class="input-card">
+      <div class="input-card-title" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:6px;"><span>📋</span> 手孔調查記錄</div>
+        <button onclick="clearSurvey()" title="清除所有調查記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
+      </div>
+
+      <!-- 地點位置 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>地點位置</label>
+          <input id="svLocation" placeholder="例：永豐街49巷1號" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- 管線單位勾選 -->
+      <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:10px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:0.08em;">管線單位（可複選）</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;" id="svUnitGrid">
+          <label class="sv-check-label"><input type="checkbox" value="台電" onchange="svUpdatePreview()"><span>台電</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="中華電信" onchange="svUpdatePreview()"><span>中華電信</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="瓦斯" onchange="svUpdatePreview()"><span>瓦斯</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="制水閥" onchange="svUpdatePreview()"><span>制水閥</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="汙水" onchange="svUpdatePreview()"><span>汙水</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="雨水" onchange="svUpdatePreview()"><span>雨水</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="消防" onchange="svUpdatePreview()"><span>消防</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="數位天空" onchange="svUpdatePreview()"><span>數位天空</span></label>
+          <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;">
+            <input type="checkbox" id="svOtherCheck" onchange="svToggleOther();svUpdatePreview();" style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;">
+            <span style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;">其他：</span>
+            <input type="text" id="svOtherText" placeholder="請填入單位名稱" oninput="svUpdatePreview()" disabled
+              style="flex:1;background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text);opacity:0.4;">
+          </div>
+        </div>
+      </div>
+
+      <!-- 預覽 -->
+      <div id="svPreview" style="display:none;background:var(--green-light);border:1.5px solid rgba(39,174,96,0.3);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);">
+        <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px;">預覽</div>
+        <div><b>地點：</b><span id="svPreviewLoc"></span></div>
+        <div><b>單位：</b><span id="svPreviewUnits"></span></div>
+      </div>
+
+      <button class="btn-add" onclick="addSurveyRow()">✅ 確認加入記錄</button>
+    </div>
+
+    <!-- 已加入的調查記錄 -->
+    <div id="svList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+
+    <!-- 匯出 -->
+    <div style="background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📤 匯出調查報表</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn btn-primary" onclick="downloadSurveyDocx()" style="background:linear-gradient(135deg,#2980B9,#1a5276);">📄 下載 Word 報表</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ════ PASTE PANEL ════ -->
 <div class="panel" id="panel-paste">
   <div class="export-section">
@@ -732,6 +958,19 @@ body {
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- MANHOLE DETAIL MODAL -->
+<div class="modal-overlay" id="mhModal" onclick="closeMhModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="mhModalTitle"></div>
+    <div class="detail-grid" id="mhModalBody"></div>
+    <div style="margin-top:16px;display:flex;gap:8px;">
+      <button class="btn btn-danger" style="flex:1" onclick="deleteManholeRow()">🗑️ 刪除此筆</button>
+      <button class="btn btn-outline" style="flex:1" onclick="document.getElementById('mhModal').classList.remove('open')">關閉</button>
+    </div>
   </div>
 </div>
 
@@ -848,6 +1087,8 @@ function switchPanel(name, el) {
   el.classList.add('active');
   if (name === 'table') renderTable();
   if (name === 'paste') initPastePanel();
+  if (name === 'manhole') renderManholeTable();
+  if (name === 'survey') renderSurveyList();
 }
 
 function parseStake(s) {
@@ -1126,7 +1367,7 @@ function downloadXLSX() {
   };
   const merge = (r1,c1,r2,c2) => ws['!merges'].push({s:{r:r1,c:c1},e:{r:r2,c:c2}});
 
-  cell(0,0,'施工前面積計算表','s',st.title);
+  cell(0,0,'面積計算表','s',st.title);
   merge(0,0,0,6);
   cell(1,0,'工程名稱','s',st.label);
   cell(1,1,p.name||'','s',st.value);
@@ -1182,7 +1423,7 @@ function downloadXLSX() {
   ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:TR,c:6}});
 
   XLSX.utils.book_append_sheet(wb, ws, '面積計算表');
-  const fname = `施工前面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
+  const fname = `面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
   XLSX.writeFile(wb, fname);
   toast('✅ Excel 已下載！');
 }
@@ -1246,7 +1487,7 @@ async function generateFormattedExcel() {
 
     ws.getRow(1).height = 28;
     const t1 = ws.getRow(1).getCell(1);
-    t1.value = '施工前面積計算表';
+    t1.value = '面積計算表';
     styleCell(t1, { font: { name:'標楷體', size:16, bold:true }, border: false });
     ws.mergeCells('A1:G1');
 
@@ -1363,7 +1604,7 @@ async function generateFormattedExcel() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `施工前面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
+    a.download = `面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
 
@@ -1531,7 +1772,7 @@ function downloadPasteXLSX(type) {
     seg
   };
   const dateStr = p.date || new Date().toISOString().split('T')[0];
-  const fname = `施工前面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
+  const fname = `面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
 
   if (type === 'simple') {
     const wb = XLSX.utils.book_new();
@@ -1540,7 +1781,7 @@ function downloadPasteXLSX(type) {
     const R = (r,c) => XLSX.utils.encode_cell({r,c});
 
     const headers = [
-      ['施工前面積計算表','','','','','',''],
+      ['面積計算表','','','','','',''],
       ['工程名稱', p.name||'','','','','',''],
       ['承包廠商', p.vendor||'','','監造單位', p.super||'',''],
       ['施工地點', seg,'','','施工日期', dateStr,''],
@@ -1611,7 +1852,7 @@ async function downloadPasteFormatted(p, seg, dateStr, fname) {
     }
 
     ws.getRow(1).height = 28;
-    const t1 = ws.getRow(1).getCell(1); t1.value='施工前面積計算表';
+    const t1 = ws.getRow(1).getCell(1); t1.value='面積計算表';
     sc(t1,{name:'標楷體',size:16,bold:true},{},false); ws.mergeCells('A1:G1');
 
     ws.getRow(2).height = 18;
@@ -1706,6 +1947,601 @@ async function downloadPasteFormatted(p, seg, dateStr, fname) {
     console.error(err);
   }
 }
+
+// ════ 人手孔功能 ════
+let mhRows = JSON.parse(localStorage.getItem('mh_rows') || '[]');
+let mhCurrentId = null;
+
+function mhSave() { localStorage.setItem('mh_rows', JSON.stringify(mhRows)); }
+
+function copyLineText(el) {
+  const text = el.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    el.style.background = '#d4edda';
+    el.style.borderColor = 'rgba(39,174,96,0.5)';
+    setTimeout(() => {
+      el.style.background = '#F0F2F5';
+      el.style.borderColor = 'var(--border)';
+    }, 800);
+    toast('✅ 已複製！可直接貼到 LINE');
+  });
+}
+
+function copyManholeToLine() {
+  const dataRows = mhRows.filter(r => !r.isSeg);
+  if (!dataRows.length) { toast('⚠️ 無資料可複製'); return; }
+
+  // 左/右 轉換，L→左 R→右，數字保留
+  function posToZh(pos) {
+    return pos.replace(/^L/i, '左').replace(/^R/i, '右');
+  }
+
+  // 產生每一列：樁號 左/右N 管線 長度 寬度
+  // 路段標題也輸出
+  const lines = [];
+  mhRows.forEach(r => {
+    if (r.isSeg) {
+      lines.push(r.seg);
+    } else {
+      const parts = [r.stake, posToZh(r.pos), r.unit || '', Number(r.len).toFixed(1), Number(r.wid).toFixed(1)];
+      lines.push(parts.join(' '));
+    }
+  });
+
+  const text = lines.join('\n');
+
+  // 顯示預覽（可點擊複製）
+  const preview = document.getElementById('mhLinePreview');
+  preview.textContent = text;
+  preview.style.display = 'block';
+
+  navigator.clipboard.writeText(text).then(() => {
+    preview.style.background = '#d4edda';
+    preview.style.borderColor = 'rgba(39,174,96,0.5)';
+    setTimeout(() => {
+      preview.style.background = '#F0F2F5';
+      preview.style.borderColor = 'var(--border)';
+    }, 800);
+    toast('✅ 已複製！可直接貼到 LINE');
+  }).catch(() => {
+    toast('👆 點擊下方文字可複製');
+  });
+}
+
+let posCounters = { L: 1, R: 1 };
+
+function updatePosButtons() {
+  const bl = document.getElementById('btnL');
+  const br = document.getElementById('btnR');
+  if (bl) bl.textContent = 'L' + posCounters.L;
+  if (br) br.textContent = 'R' + posCounters.R;
+}
+
+function setPosPrefix(prefix) {
+  const el = document.getElementById('mhPos');
+  el.value = prefix + posCounters[prefix];
+  posCounters[prefix]++;
+  updatePosButtons();
+  el.focus();
+  mhLiveCalc();
+}
+
+function resetPosCounter() {
+  posCounters = { L: 1, R: 1 };
+  updatePosButtons();
+  document.getElementById('mhPos').value = '';
+  mhLiveCalc();
+  toast('↺ 計數已重置');
+}
+
+function mhLiveCalc() {
+  const len = parseFloat(document.getElementById('mhLen').value);
+  const wid = parseFloat(document.getElementById('mhWid').value);
+  const areaEl = document.getElementById('mhAreaDisplay');
+  const cumulEl = document.getElementById('mhCumulDisplay');
+  const currentCumul = mhRows.length ? mhRows[mhRows.length - 1].cumul : 0;
+
+  if (!isNaN(len) && !isNaN(wid) && len > 0 && wid > 0) {
+    const area = Math.round(len * wid * 100) / 100;
+    areaEl.textContent = area.toFixed(2);
+    areaEl.style.color = 'var(--green)';
+    cumulEl.textContent = (Math.round((currentCumul + area) * 100) / 100).toFixed(2);
+  } else {
+    areaEl.textContent = '—';
+    areaEl.style.color = 'var(--text3)';
+    cumulEl.textContent = '—';
+  }
+}
+
+function addManholeRow() {
+  const seg = document.getElementById('mhSeg').value.trim();
+  const stake = document.getElementById('mhStake').value.trim();
+  const pos = document.getElementById('mhPos').value.trim();
+  const len = parseFloat(document.getElementById('mhLen').value);
+  const wid = parseFloat(document.getElementById('mhWid').value);
+  const unit = document.getElementById('mhUnit').value.trim();
+
+  if (!stake) { toast('⚠️ 請填寫樁號'); return; }
+  if (!pos)   { toast('⚠️ 請填寫相對位置（如 L1、R2）'); return; }
+  if (isNaN(len) || len <= 0) { toast('⚠️ 請填寫長度'); return; }
+  if (isNaN(wid) || wid <= 0) { toast('⚠️ 請填寫寬度'); return; }
+
+  const area = Math.round(len * wid * 100) / 100;
+  const prevCumul = mhRows.length ? mhRows[mhRows.length - 1].cumul : 0;
+  const cumul = Math.round((prevCumul + area) * 100) / 100;
+
+  // 若填了路段名稱，先插入路段標題列
+  if (seg) {
+    mhRows.push({ id: Date.now() - 1, isSeg: true, seg, cumul: prevCumul });
+  }
+
+  mhRows.push({ id: Date.now(), isSeg: false, stake, pos, len, wid, area, cumul, unit });
+  mhSave();
+
+  // 清空輸入（保留路段和管線單位方便連續輸入）
+  document.getElementById('mhSeg').value = '';
+  document.getElementById('mhStake').value = '';
+  document.getElementById('mhPos').value = '';
+  document.getElementById('mhLen').value = '';
+  document.getElementById('mhWid').value = '';
+
+  posCounters = { L: 1, R: 1 };
+  updatePosButtons();
+
+  renderManholeTable();
+  mhLiveCalc();
+  toast('✅ 面積 ' + area.toFixed(2) + ' M²　累計 ' + cumul.toFixed(2) + ' M²');
+}
+
+function renderManholeTable() {
+  const el = document.getElementById('mhRows');
+  const dataRows = mhRows.filter(r => !r.isSeg);
+  const total = dataRows.reduce((s, r) => s + r.area, 0);
+  document.getElementById('mhCount').textContent = dataRows.length;
+  document.getElementById('mhTotalDisplay').textContent = total.toFixed(2);
+
+  if (mhRows.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">🕳️</div><div class="empty-text">尚無人手孔記錄<br><span style="font-size:12px">填寫上方資料後加入</span></div></div>`;
+    return;
+  }
+
+  el.innerHTML = mhRows.map(r => {
+    if (r.isSeg) {
+      return `<div style="background:linear-gradient(135deg,rgba(41,128,185,0.1),rgba(41,128,185,0.05));border-bottom:1px solid var(--border);padding:6px 8px;">
+        <span style="font-size:11px;font-weight:700;color:var(--blue);">📍 ${r.seg}</span>
+      </div>`;
+    }
+    return `<div class="data-row" style="grid-template-columns:72px 52px 48px 48px 58px 64px 60px;cursor:pointer;" onclick="openMhModal(${r.id})">
+      <div class="td stake" style="font-size:10px;">${r.stake}</div>
+      <div class="td" style="font-size:11px;text-align:center;color:var(--blue);font-weight:700;">${r.pos}</div>
+      <div class="td">${Number(r.len).toFixed(1)}</div>
+      <div class="td">${Number(r.wid).toFixed(1)}</div>
+      <div class="td area">${r.area.toFixed(2)}</div>
+      <div class="td cumul">${r.cumul.toFixed(2)}</div>
+      <div class="td note" style="font-size:10px;color:var(--text2);text-align:left;">${r.unit || ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function openMhModal(id) {
+  mhCurrentId = id;
+  const r = mhRows.find(x => x.id === id && !x.isSeg);
+  if (!r) return;
+  document.getElementById('mhModalTitle').textContent = `樁號 ${r.stake}　${r.pos}`;
+  document.getElementById('mhModalBody').innerHTML = `
+    <div class="detail-box"><div class="detail-box-label">樁號</div><div class="detail-box-val">${r.stake} m</div></div>
+    <div class="detail-box"><div class="detail-box-label">相對位置</div><div class="detail-box-val" style="color:var(--blue);">${r.pos}</div></div>
+    <div class="detail-box"><div class="detail-box-label">長度</div><div class="detail-box-val">${Number(r.len).toFixed(1)} M</div></div>
+    <div class="detail-box"><div class="detail-box-label">寬度</div><div class="detail-box-val">${Number(r.wid).toFixed(1)} M</div></div>
+    <div class="detail-box"><div class="detail-box-label">面積</div><div class="detail-box-val accent">${r.area.toFixed(2)} M²</div></div>
+    <div class="detail-box"><div class="detail-box-label">累計面積</div><div class="detail-box-val green">${r.cumul.toFixed(2)} M²</div></div>
+    ${r.unit ? `<div class="detail-box full"><div class="detail-box-label">管線單位</div><div class="detail-box-val" style="font-family:'Noto Sans TC',sans-serif;font-size:16px;">${r.unit}</div></div>` : ''}
+  `;
+  document.getElementById('mhModal').classList.add('open');
+}
+
+function closeMhModal(e) {
+  if (e.target === document.getElementById('mhModal')) document.getElementById('mhModal').classList.remove('open');
+}
+
+function deleteManholeRow() {
+  if (!confirm('確定刪除此筆記錄？')) return;
+  // 刪除資料列
+  mhRows = mhRows.filter(r => r.id !== mhCurrentId);
+  // 重新計算累計
+  let c = 0;
+  mhRows.forEach(r => {
+    if (r.isSeg) return;
+    c = Math.round((c + r.area) * 100) / 100;
+    r.cumul = c;
+  });
+  mhSave();
+  renderManholeTable();
+  mhLiveCalc();
+  document.getElementById('mhModal').classList.remove('open');
+  toast('已刪除');
+}
+
+function clearManhole() {
+  if (!confirm('確定清除所有人手孔記錄？')) return;
+  mhRows = [];
+  mhSave();
+  renderManholeTable();
+  mhLiveCalc();
+  toast('已清除');
+}
+
+async function downloadManholeXLSX(type) {
+  const dataRows = mhRows.filter(r => !r.isSeg);
+  if (!dataRows.length) { toast('⚠️ 無資料可匯出'); return; }
+
+  const p = JSON.parse(localStorage.getItem('area_project') || '{}');
+  const dateStr = p.date || new Date().toISOString().split('T')[0];
+  const fname = `施工後面積計算表_人手孔_${dateStr}.xlsx`;
+
+  if (type === 'simple') {
+    const wb = XLSX.utils.book_new();
+    const ws = {};
+    ws['!merges'] = [];
+    const R = (r,c) => XLSX.utils.encode_cell({r,c});
+
+    // 標頭
+    ws[R(0,0)]={v:'施工後面積計算表',t:'s'}; for(let c=1;c<=6;c++) ws[R(0,c)]={v:'',t:'s'};
+    ws[R(1,0)]={v:'工程名稱',t:'s'}; ws[R(1,1)]={v:p.name||'',t:'s'};
+    ws[R(2,0)]={v:'承包廠商',t:'s'}; ws[R(2,1)]={v:p.vendor||'',t:'s'};
+    ws[R(2,4)]={v:'監造單位',t:'s'}; ws[R(2,5)]={v:p.super||'',t:'s'};
+    ws[R(3,0)]={v:'施工地點',t:'s'}; ws[R(3,1)]={v:'',t:'s'};
+    ws[R(3,4)]={v:'施工日期',t:'s'}; ws[R(3,5)]={v:dateStr,t:'s'};
+    ws[R(4,0)]={v:'人手孔',t:'s'};
+    ws[R(5,0)]={v:'樁號',t:'s'}; ws[R(5,1)]={v:'相對位置(L/R)',t:'s'};
+    ws[R(5,2)]={v:'長度(M)',t:'s'}; ws[R(5,3)]={v:'寬度(M)',t:'s'};
+    ws[R(5,4)]={v:'面積(M2)',t:'s'}; ws[R(5,5)]={v:'累計面積(M2)',t:'s'};
+    ws[R(5,6)]={v:'管線單位',t:'s'};
+
+    // 資料列（含路段標題）
+    let excelRow = 6;
+    let prevDataExcelRow = null;
+    mhRows.forEach(r => {
+      if (r.isSeg) {
+        ws[R(excelRow,0)]={v:r.seg,t:'s'};
+        for(let c=1;c<=6;c++) ws[R(excelRow,c)]={v:'',t:'s'};
+        excelRow++;
+      } else {
+        ws[R(excelRow,0)]={v:Number(r.stake),t:'n'};
+        ws[R(excelRow,1)]={v:r.pos,t:'s'};
+        ws[R(excelRow,2)]={v:Number(r.len),t:'n',z:'0.00'};
+        ws[R(excelRow,3)]={v:Number(r.wid),t:'n',z:'0.00'};
+        const er = excelRow+1;
+        ws[R(excelRow,4)]={f:`ROUND(C${er}*D${er},2)`,t:'n',z:'0.00'};
+        if (prevDataExcelRow === null) {
+          ws[R(excelRow,5)]={f:`E${er}`,t:'n',z:'0.00'};
+        } else {
+          ws[R(excelRow,5)]={f:`E${er}+F${prevDataExcelRow+1}`,t:'n',z:'0.00'};
+        }
+        ws[R(excelRow,6)]={v:r.unit||'',t:'s'};
+        prevDataExcelRow = excelRow;
+        excelRow++;
+      }
+    });
+
+    // 合計列
+    ws[R(excelRow,0)]={v:'合計總面積',t:'s'};
+    for(let c=1;c<=4;c++) ws[R(excelRow,c)]={v:'',t:'s'};
+    ws[R(excelRow,5)]={v:dataRows[dataRows.length-1].cumul,t:'n',z:'0.00'};
+    ws[R(excelRow,6)]={v:'M2',t:'s'};
+
+    ws['!merges']=[
+      {s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:1},e:{r:1,c:6}},
+      {s:{r:2,c:1},e:{r:2,c:3}},{s:{r:2,c:5},e:{r:2,c:6}},
+      {s:{r:3,c:1},e:{r:3,c:3}},{s:{r:3,c:5},e:{r:3,c:6}},
+      {s:{r:excelRow,c:0},e:{r:excelRow,c:4}},
+    ];
+    ws['!cols']=[{wch:12},{wch:14},{wch:12},{wch:12},{wch:12},{wch:14},{wch:14}];
+    ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:excelRow,c:6}});
+    XLSX.utils.book_append_sheet(wb, ws, '人手孔');
+    XLSX.writeFile(wb, fname);
+    toast('✅ 簡易 Excel 已下載！');
+
+  } else {
+    // 公司格式版（ExcelJS）
+    await downloadManholeFormatted(p, dateStr, fname);
+  }
+}
+
+async function downloadManholeFormatted(p, dateStr, fname) {
+  try {
+    if (!window.ExcelJS) {
+      toast('⏳ 載入格式引擎...');
+      await new Promise((res,rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+    const dataRows = mhRows.filter(r => !r.isSeg);
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('人手孔');
+    ws.columns=[{width:12},{width:14},{width:12},{width:12},{width:12},{width:14},{width:14}];
+
+    const thin={style:'thin'};
+    const border={top:thin,bottom:thin,left:thin,right:thin};
+    function sc(cell,font={},align={},hasBorder=true){
+      cell.font={name:'標楷體',size:12,...font};
+      cell.alignment={horizontal:'center',vertical:'middle',...align};
+      if(hasBorder) cell.border=border;
+    }
+
+    // 標題
+    ws.getRow(1).height=28;
+    const t1=ws.getRow(1).getCell(1); t1.value='施工後面積計算表';
+    sc(t1,{name:'標楷體',size:16,bold:true},{},false); ws.mergeCells('A1:G1');
+
+    ws.getRow(2).height=18;
+    ws.getRow(2).getCell(1).value='工程名稱'; sc(ws.getRow(2).getCell(1));
+    ws.getRow(2).getCell(2).value=p.name||''; sc(ws.getRow(2).getCell(2),{},{horizontal:'left',vertical:'middle'});
+    ws.mergeCells('B2:G2'); for(let c=3;c<=7;c++) sc(ws.getRow(2).getCell(c));
+
+    ws.getRow(3).height=18;
+    ws.getRow(3).getCell(1).value='承包廠商'; sc(ws.getRow(3).getCell(1));
+    ws.getRow(3).getCell(2).value=p.vendor||''; sc(ws.getRow(3).getCell(2));
+    ws.mergeCells('B3:D3'); for(let c=3;c<=4;c++) sc(ws.getRow(3).getCell(c));
+    ws.getRow(3).getCell(5).value='監造單位'; sc(ws.getRow(3).getCell(5));
+    ws.getRow(3).getCell(6).value=p.super||''; sc(ws.getRow(3).getCell(6));
+    ws.mergeCells('F3:G3'); sc(ws.getRow(3).getCell(7));
+
+    ws.getRow(4).height=18;
+    ws.getRow(4).getCell(1).value='施工地點'; sc(ws.getRow(4).getCell(1));
+    ws.getRow(4).getCell(2).value=''; sc(ws.getRow(4).getCell(2));
+    ws.mergeCells('B4:D4'); for(let c=3;c<=4;c++) sc(ws.getRow(4).getCell(c));
+    ws.getRow(4).getCell(5).value='施工日期'; sc(ws.getRow(4).getCell(5));
+    ws.getRow(4).getCell(6).value=dateStr; sc(ws.getRow(4).getCell(6));
+    ws.mergeCells('F4:G4'); sc(ws.getRow(4).getCell(7));
+
+    // 人手孔標題列
+    ws.getRow(5).height=18;
+    ws.getRow(5).getCell(1).value='人手孔';
+    sc(ws.getRow(5).getCell(1),{bold:true},{horizontal:'left',vertical:'middle'});
+    ws.mergeCells('A5:G5');
+    for(let c=2;c<=7;c++) sc(ws.getRow(5).getCell(c));
+
+    // 欄位標題
+    ws.getRow(6).height=18;
+    ['樁號','相對位置(L/R)','長度(M)','寬度(M)','面積(M2)','累計面積(M2)','管線單位'].forEach((h,i)=>{
+      const c=ws.getRow(6).getCell(i+1); c.value=h;
+      sc(c,{name:(i===0||i===1||i===6)?'標楷體':'Times New Roman',size:12});
+    });
+
+    // 資料列
+    let excelRow = 7;
+    let prevDataExcelRow = null;
+    mhRows.forEach(r => {
+      if (r.isSeg) {
+        ws.getRow(excelRow).height=16;
+        const sc_r=ws.getRow(excelRow).getCell(1);
+        sc_r.value=r.seg;
+        sc_r.font={name:'標楷體',size:12};
+        sc_r.alignment={horizontal:'left',vertical:'middle'};
+        sc_r.border=border;
+        ws.mergeCells(`A${excelRow}:G${excelRow}`);
+        for(let c=2;c<=7;c++) sc(ws.getRow(excelRow).getCell(c));
+        excelRow++;
+      } else {
+        ws.getRow(excelRow).height=16;
+        const dr=ws.getRow(excelRow);
+        const er=excelRow;
+
+        const ca=dr.getCell(1); ca.value=Number(r.stake); ca.numFmt='"0K+"000.0';
+        sc(ca,{name:'Times New Roman',size:12});
+
+        const cb=dr.getCell(2); cb.value=r.pos;
+        sc(cb,{name:'Times New Roman',size:12});
+
+        const cc=dr.getCell(3); cc.value=Number(r.len); cc.numFmt='0.00';
+        sc(cc,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+
+        const cd=dr.getCell(4); cd.value=Number(r.wid); cd.numFmt='0.00';
+        sc(cd,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+
+        const ce=dr.getCell(5);
+        ce.value={formula:`ROUND(C${er}*D${er},2)`}; ce.numFmt='0.00';
+        sc(ce,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+
+        const cf=dr.getCell(6);
+        if(prevDataExcelRow===null){
+          cf.value={formula:`E${er}`};
+        } else {
+          cf.value={formula:`E${er}+F${prevDataExcelRow}`};
+        }
+        cf.numFmt='0.00';
+        sc(cf,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+
+        const cg=dr.getCell(7); cg.value=r.unit||'';
+        sc(cg,{name:'Times New Roman',size:12});
+
+        prevDataExcelRow=excelRow;
+        excelRow++;
+      }
+    });
+
+    // 合計列
+    ws.getRow(excelRow).height=18;
+    const ta=ws.getRow(excelRow).getCell(1); ta.value='合計總面積';
+    sc(ta,{name:'標楷體',size:12,bold:true},{horizontal:'right',vertical:'middle'});
+    ws.mergeCells(`A${excelRow}:E${excelRow}`);
+    for(let c=2;c<=5;c++) sc(ws.getRow(excelRow).getCell(c),{name:'標楷體',size:12,bold:true});
+    const tf=ws.getRow(excelRow).getCell(6);
+    tf.value=dataRows[dataRows.length-1].cumul;
+    tf.numFmt='0.00';
+    sc(tf,{name:'Times New Roman',size:12,bold:true},{horizontal:'right',vertical:'middle'});
+    const tg=ws.getRow(excelRow).getCell(7); tg.value='M2';
+    sc(tg,{name:'Times New Roman',size:12,bold:true});
+
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=fname; a.click();
+    URL.revokeObjectURL(url);
+    toast('✅ 公司格式 Excel 已下載！');
+  } catch(err) {
+    toast('⚠️ 產生失敗：'+err.message);
+    console.error(err);
+  }
+}
+
+// 初始化人手孔表格
+renderManholeTable();
+
+// ════ 手孔調查功能 ════
+let svRows = JSON.parse(localStorage.getItem('sv_rows') || '[]');
+let svCurrentId = null;
+
+function svSave() { localStorage.setItem('sv_rows', JSON.stringify(svRows)); }
+
+function svToggleOther() {
+  const cb = document.getElementById('svOtherCheck');
+  const txt = document.getElementById('svOtherText');
+  const row = txt.parentElement;
+  txt.disabled = !cb.checked;
+  txt.style.opacity = cb.checked ? '1' : '0.4';
+  row.style.background = cb.checked ? 'var(--accent-light)' : 'var(--surface2)';
+  row.style.borderColor = cb.checked ? 'var(--accent)' : 'var(--border)';
+  if (cb.checked) txt.focus();
+}
+
+function svGetChecked() {
+  const units = [...document.querySelectorAll('#svUnitGrid input[type=checkbox]:checked')]
+    .filter(cb => cb.id !== 'svOtherCheck')
+    .map(cb => cb.value);
+  const otherCb = document.getElementById('svOtherCheck');
+  const otherTxt = document.getElementById('svOtherText').value.trim();
+  if (otherCb && otherCb.checked && otherTxt) units.push(otherTxt);
+  return units;
+}
+
+function svUpdatePreview() {
+  const loc = document.getElementById('svLocation').value.trim();
+  const units = svGetChecked();
+  const preview = document.getElementById('svPreview');
+  if (loc || units.length) {
+    document.getElementById('svPreviewLoc').textContent = loc || '（未填）';
+    document.getElementById('svPreviewUnits').textContent = units.length ? units.join('、') : '（未選）';
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+function addSurveyRow() {
+  const loc = document.getElementById('svLocation').value.trim();
+  const units = svGetChecked();
+  if (!loc) { toast('⚠️ 請填寫地點位置'); return; }
+  if (!units.length) { toast('⚠️ 請至少勾選一個管線單位'); return; }
+
+  svRows.push({ id: Date.now(), location: loc, units });
+  svSave();
+
+  // 清空
+  document.getElementById('svLocation').value = '';
+  document.querySelectorAll('#svUnitGrid input[type=checkbox]').forEach(cb => cb.checked = false);
+  const otherTxt = document.getElementById('svOtherText');
+  otherTxt.value = ''; otherTxt.disabled = true; otherTxt.style.opacity = '0.4';
+  const otherRow = otherTxt.parentElement;
+  otherRow.style.background = 'var(--surface2)'; otherRow.style.borderColor = 'var(--border)';
+  document.getElementById('svPreview').style.display = 'none';
+
+  renderSurveyList();
+  toast('✅ 已加入調查記錄');
+}
+
+function renderSurveyList() {
+  const el = document.getElementById('svList');
+  if (!svRows.length) {
+    el.innerHTML = `<div class="empty-state" style="background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);"><div class="empty-icon">📋</div><div class="empty-text">尚無調查記錄</div></div>`;
+    return;
+  }
+  el.innerHTML = svRows.map((r, i) => `
+    <div style="background:var(--surface);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);border-left:4px solid var(--blue);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+      <div style="flex:1;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:3px;">地點 ${i+1}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">${r.location}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+          ${r.units.map(u => `<span style="background:var(--accent-light);color:var(--accent);border:1px solid rgba(230,126,34,0.3);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;">${u}</span>`).join('')}
+        </div>
+      </div>
+      <button onclick="deleteSurveyRow(${r.id})" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:6px;padding:4px 8px;font-size:13px;cursor:pointer;flex-shrink:0;">✕</button>
+    </div>`).join('');
+}
+
+function deleteSurveyRow(id) {
+  svRows = svRows.filter(r => r.id !== id);
+  svSave(); renderSurveyList(); toast('已刪除');
+}
+
+function clearSurvey() {
+  if (!confirm('確定清除所有調查記錄？')) return;
+  svRows = []; svSave(); renderSurveyList(); toast('已清除');
+}
+
+async function downloadSurveyDocx() {
+  if (!svRows.length) { toast('⚠️ 無資料可匯出'); return; }
+
+  const p = JSON.parse(localStorage.getItem('area_project') || '{}');
+  const dateStr = p.date || new Date().toISOString().split('T')[0];
+
+  // 用 HTML 產生 Word 可開啟的 .doc（不需要外部套件）
+  const rowsHtml = svRows.map(r => `
+    <table border="1" cellspacing="0" cellpadding="6"
+      style="width:100%;border-collapse:collapse;margin-bottom:16pt;font-family:標楷體;font-size:12pt;">
+      <tr style="background:#DAEEF3;">
+        <td style="width:30%;font-weight:bold;text-align:center;border:1px solid #333;">地點位置：</td>
+        <td style="border:1px solid #333;">${r.location}</td>
+      </tr>
+      <tr style="background:#DAEEF3;">
+        <td style="font-weight:bold;text-align:center;border:1px solid #333;">單位：</td>
+        <td style="border:1px solid #333;">${r.units.join('、')}</td>
+      </tr>
+      <tr>
+        <td colspan="2" style="height:200pt;border:1px solid #333;text-align:center;vertical-align:middle;color:#AAAAAA;font-size:10pt;">
+          （照片）
+        </td>
+      </tr>
+    </table>
+  `).join('<br>');
+
+  const html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office"
+          xmlns:w="urn:schemas-microsoft-com:office:word"
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+      <xml><w:WordDocument><w:View>Print</w:View>
+        <w:Zoom>100</w:Zoom>
+        <w:DoNotOptimizeForBrowser/>
+      </w:WordDocument></xml>
+      <style>
+        @page { size:21cm 29.7cm; margin:1.5cm; }
+        body { font-family:標楷體,serif; font-size:12pt; }
+        table { page-break-inside:avoid; }
+      </style>
+    </head>
+    <body>${rowsHtml}</body>
+    </html>`;
+
+  const blob = new Blob(['\ufeff' + html], {
+    type: 'application/msword;charset=utf-8'
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `手孔調查報表_${dateStr}.doc`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ Word 報表已下載！');
+}
+
+// 初始化調查清單
+renderSurveyList();
 
 function toast(msg) {
   const t = document.getElementById('toast');
