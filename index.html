@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>面積計算表</title>
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+
+
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -32,98 +34,98 @@
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
 }
 
-- { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 body {
-font-family: ‘Noto Sans TC’, sans-serif;
-background: var(–bg);
-color: var(–text);
-min-height: 100vh;
-padding-bottom: 100px;
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 100px;
 }
 
 /* ── HEADER ── */
 .header {
-background: linear-gradient(135deg, #1A1D27 0%, #2E3450 100%);
-padding: 20px 18px 16px;
-position: sticky; top: 0; z-index: 50;
-box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  background: linear-gradient(135deg, #1A1D27 0%, #2E3450 100%);
+  padding: 20px 18px 16px;
+  position: sticky; top: 0; z-index: 50;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
 }
 .header-row { display: flex; align-items: center; justify-content: space-between; }
 .header-logo {
-display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 10px;
 }
 .logo-icon {
-width: 38px; height: 38px;
-background: linear-gradient(135deg, var(–accent) 0%, var(–accent-dark) 100%);
-border-radius: 10px;
-display: flex; align-items: center; justify-content: center;
-font-size: 20px;
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
 }
 .header-title { font-size: 17px; font-weight: 900; color: #FFF; letter-spacing: 0.03em; }
-.header-sub { font-size: 10px; color: rgba(255,255,255,0.5); font-family: ‘JetBrains Mono’, monospace; margin-top: 1px; }
+.header-sub { font-size: 10px; color: rgba(255,255,255,0.5); font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
 .header-date {
-background: rgba(255,255,255,0.1);
-border: 1px solid rgba(255,255,255,0.15);
-border-radius: 20px; padding: 5px 12px;
-font-family: ‘JetBrains Mono’, monospace; font-size: 11px; color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px; padding: 5px 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.8);
 }
 
 /* ── PROJECT INFO ── */
 .project-bar {
-background: var(–accent);
-padding: 0 18px;
-display: flex; align-items: center; gap: 10px;
-cursor: pointer; user-select: none;
+  background: var(--accent);
+  padding: 0 18px;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; user-select: none;
 }
 .project-bar-inner {
-display: flex; align-items: center; justify-content: space-between;
-width: 100%; padding: 10px 0;
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 10px 0;
 }
 .project-bar-label { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.8); }
 .project-bar-value { font-size: 13px; font-weight: 700; color: #FFF; max-width: 55%; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .project-expand {
-background: var(–surface);
-border-bottom: 1px solid var(–border);
-padding: 16px 18px;
-display: none;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 18px;
+  display: none;
 }
 .project-expand.open { display: block; }
 .proj-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.proj-field label { font-size: 10px; font-weight: 700; color: var(–text3); letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+.proj-field label { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 4px; }
 .proj-field input {
-width: 100%; background: var(–surface2); border: 1.5px solid var(–border);
-border-radius: 8px; color: var(–text); font-family: ‘Noto Sans TC’, sans-serif; font-size: 13px;
-padding: 8px 10px; outline: none;
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: 'Noto Sans TC', sans-serif; font-size: 13px;
+  padding: 8px 10px; outline: none;
 }
-.proj-field input:focus { border-color: var(–accent); box-shadow: 0 0 0 3px rgba(230,126,34,0.12); }
+.proj-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(230,126,34,0.12); }
 .proj-field.full { grid-column: 1 / -1; }
 
 /* ── SECTION TABS ── */
 .section-tabs {
-display: flex; overflow-x: auto; gap: 0;
-background: var(–surface); border-bottom: 2px solid var(–border);
-padding: 0 12px; scrollbar-width: none;
-position: sticky; top: 74px; z-index: 40;
+  display: flex; overflow-x: auto; gap: 0;
+  background: var(--surface); border-bottom: 2px solid var(--border);
+  padding: 0 12px; scrollbar-width: none;
+  position: sticky; top: 74px; z-index: 40;
 }
 .section-tabs::-webkit-scrollbar { display: none; }
 .sec-tab {
-flex-shrink: 0; padding: 12px 16px;
-font-size: 13px; font-weight: 700; color: var(–text3);
-border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s;
-white-space: nowrap; margin-bottom: -2px;
+  flex-shrink: 0; padding: 12px 16px;
+  font-size: 13px; font-weight: 700; color: var(--text3);
+  border-bottom: 3px solid transparent; cursor: pointer; transition: all 0.2s;
+  white-space: nowrap; margin-bottom: -2px;
 }
-.sec-tab.active { color: var(–accent); border-bottom-color: var(–accent); }
+.sec-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ── LIVE TOTALS BAR ── */
 .totals-bar {
-display: grid; grid-template-columns: repeat(3, 1fr);
-background: linear-gradient(135deg, #1A1D27, #2E3450);
-padding: 10px 14px; gap: 6px;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  background: linear-gradient(135deg, #1A1D27, #2E3450);
+  padding: 10px 14px; gap: 6px;
 }
 .total-item { text-align: center; }
 .total-label { font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 0.08em; text-transform: uppercase; }
-.total-value { font-family: ‘JetBrains Mono’, monospace; font-size: 16px; font-weight: 700; color: var(–accent); }
+.total-value { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: var(--accent); }
 .total-unit { font-size: 9px; color: rgba(255,255,255,0.4); }
 
 /* ── INPUT SECTION ── */
@@ -131,192 +133,192 @@ padding: 10px 14px; gap: 6px;
 
 /* New row input card */
 .input-card {
-background: var(–surface);
-border-radius: var(–radius);
-border: 2px dashed var(–border2);
-padding: 14px;
-box-shadow: var(–shadow);
-margin-bottom: 14px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 2px dashed var(--border2);
+  padding: 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
 }
 .input-card-title {
-font-size: 11px; font-weight: 700; color: var(–text3);
-letter-spacing: 0.1em; text-transform: uppercase;
-margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; color: var(--text3);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
 }
-.input-card-title span { width: 20px; height: 20px; background: var(–accent); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; }
+.input-card-title span { width: 20px; height: 20px; background: var(--accent); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #FFF; font-size: 11px; }
 
 /* Input rows */
 .irow { display: flex; gap: 8px; margin-bottom: 8px; align-items: flex-end; }
 .irow .ifield { flex: 1; }
-.ifield label { display: block; font-size: 10px; font-weight: 700; color: var(–text3); margin-bottom: 4px; }
+.ifield label { display: block; font-size: 10px; font-weight: 700; color: var(--text3); margin-bottom: 4px; }
 .ifield input, .ifield select {
-width: 100%; background: var(–surface2); border: 1.5px solid var(–border);
-border-radius: 8px; color: var(–text); font-family: ‘Noto Sans TC’, sans-serif;
-font-size: 15px; padding: 10px 10px; outline: none; transition: all 0.2s;
--webkit-appearance: none;
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: 'Noto Sans TC', sans-serif;
+  font-size: 15px; padding: 10px 10px; outline: none; transition: all 0.2s;
+  -webkit-appearance: none;
 }
 .ifield input:focus, .ifield select:focus {
-border-color: var(–accent); background: var(–accent-light);
-box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
+  border-color: var(--accent); background: var(--accent-light);
+  box-shadow: 0 0 0 3px rgba(230,126,34,0.1);
 }
-.ifield input.mono { font-family: ‘JetBrains Mono’, monospace; font-size: 14px; }
+.ifield input.mono { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
 .ifield .unit-wrap { position: relative; }
 .ifield .unit-wrap input { padding-right: 34px; }
-.ifield .unit-wrap .unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(–text3); font-family: ‘JetBrains Mono’, monospace; pointer-events: none; }
+.ifield .unit-wrap .unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text3); font-family: 'JetBrains Mono', monospace; pointer-events: none; }
 
 /* Result preview */
 .result-preview {
-background: var(–green-light);
-border: 1.5px solid rgba(39,174,96,0.3);
-border-radius: 8px; padding: 10px 12px;
-display: flex; align-items: center; justify-content: space-between;
-margin: 10px 0; display: none;
+  background: var(--green-light);
+  border: 1.5px solid rgba(39,174,96,0.3);
+  border-radius: 8px; padding: 10px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 10px 0; display: none;
 }
 .result-preview.show { display: flex; }
-.result-label { font-size: 11px; font-weight: 700; color: var(–green); }
+.result-label { font-size: 11px; font-weight: 700; color: var(--green); }
 .result-values { text-align: right; }
-.result-main { font-family: ‘JetBrains Mono’, monospace; font-size: 20px; font-weight: 700; color: var(–green); }
-.result-sub { font-size: 10px; color: var(–text3); }
+.result-main { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: var(--green); }
+.result-sub { font-size: 10px; color: var(--text3); }
 
 /* Add button */
 .btn-add {
-width: 100%; padding: 13px; border-radius: var(–radius);
-background: linear-gradient(135deg, var(–accent), var(–accent-dark));
-color: #FFF; font-family: ‘Noto Sans TC’, sans-serif; font-size: 15px; font-weight: 700;
-border: none; cursor: pointer; transition: all 0.2s;
-display: flex; align-items: center; justify-content: center; gap: 8px;
-box-shadow: 0 4px 16px rgba(230,126,34,0.3);
+  width: 100%; padding: 13px; border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: #FFF; font-family: 'Noto Sans TC', sans-serif; font-size: 15px; font-weight: 700;
+  border: none; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  box-shadow: 0 4px 16px rgba(230,126,34,0.3);
 }
 .btn-add:active { transform: scale(0.97); }
 
 /* ── TABLE VIEW ── */
 .table-section { padding: 14px 16px; }
 .table-header-row {
-display: grid; grid-template-columns: 90px 56px 56px 60px 68px 76px 50px;
-background: linear-gradient(135deg, #1A1D27, #2E3450);
-border-radius: var(–radius) var(–radius) 0 0;
-padding: 8px 6px; gap: 2px;
+  display: grid; grid-template-columns: 90px 56px 56px 60px 68px 76px 50px;
+  background: linear-gradient(135deg, #1A1D27, #2E3450);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 8px 6px; gap: 2px;
 }
 .th {
-font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7);
-text-align: center; letter-spacing: 0.05em;
+  font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7);
+  text-align: center; letter-spacing: 0.05em;
 }
-.th.accent { color: var(–accent); }
+.th.accent { color: var(--accent); }
 
-.data-rows { background: var(–surface); border-radius: 0 0 var(–radius) var(–radius); overflow: hidden; box-shadow: var(–shadow); }
+.data-rows { background: var(--surface); border-radius: 0 0 var(--radius) var(--radius); overflow: hidden; box-shadow: var(--shadow); }
 
 .data-row {
-display: grid; grid-template-columns: 90px 56px 56px 60px 68px 76px 50px;
-padding: 7px 6px; gap: 2px; border-bottom: 1px solid var(–border);
-align-items: center; cursor: pointer; transition: background 0.15s;
-animation: rowIn 0.3s ease;
+  display: grid; grid-template-columns: 90px 56px 56px 60px 68px 76px 50px;
+  padding: 7px 6px; gap: 2px; border-bottom: 1px solid var(--border);
+  align-items: center; cursor: pointer; transition: background 0.15s;
+  animation: rowIn 0.3s ease;
 }
 @keyframes rowIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
 .data-row:last-child { border-bottom: none; }
-.data-row:nth-child(even) { background: var(–surface2); }
-.data-row:active { background: var(–accent-light); }
+.data-row:nth-child(even) { background: var(--surface2); }
+.data-row:active { background: var(--accent-light); }
 
 .td {
-font-size: 11px; text-align: right; color: var(–text);
-font-family: ‘JetBrains Mono’, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 11px; text-align: right; color: var(--text);
+  font-family: 'JetBrains Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.td.stake { font-size: 10px; font-weight: 700; color: var(–blue); text-align: left; }
-.td.area { font-weight: 700; color: var(–text); }
-.td.cumul { font-weight: 700; color: var(–accent); }
-.td.note { font-family: ‘Noto Sans TC’, sans-serif; font-size: 10px; color: var(–red); text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.td.stake { font-size: 10px; font-weight: 700; color: var(--blue); text-align: left; }
+.td.area { font-weight: 700; color: var(--text); }
+.td.cumul { font-weight: 700; color: var(--accent); }
+.td.note { font-family: 'Noto Sans TC', sans-serif; font-size: 10px; color: var(--red); text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
 /* Total row */
 .total-row {
-display: grid; grid-template-columns: 90px 56px 56px 60px 68px 76px 50px;
-background: linear-gradient(135deg, #1A1D27, #2E3450);
-padding: 10px 6px; gap: 2px; border-radius: 0 0 var(–radius) var(–radius);
-align-items: center;
+  display: grid; grid-template-columns: 90px 56px 56px 60px 68px 76px 50px;
+  background: linear-gradient(135deg, #1A1D27, #2E3450);
+  padding: 10px 6px; gap: 2px; border-radius: 0 0 var(--radius) var(--radius);
+  align-items: center;
 }
-.total-td { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); font-family: ‘JetBrains Mono’, monospace; text-align: right; }
-.total-td.label { color: rgba(255,255,255,0.8); font-size: 11px; font-family: ‘Noto Sans TC’, sans-serif; text-align: left; }
-.total-td.hl { color: var(–accent); font-size: 13px; }
+.total-td { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5); font-family: 'JetBrains Mono', monospace; text-align: right; }
+.total-td.label { color: rgba(255,255,255,0.8); font-size: 11px; font-family: 'Noto Sans TC', sans-serif; text-align: left; }
+.total-td.hl { color: var(--accent); font-size: 13px; }
 
 /* Empty state */
-.empty-state { padding: 40px 0; text-align: center; background: var(–surface); border-radius: 0 0 var(–radius) var(–radius); box-shadow: var(–shadow); }
+.empty-state { padding: 40px 0; text-align: center; background: var(--surface); border-radius: 0 0 var(--radius) var(--radius); box-shadow: var(--shadow); }
 .empty-icon { font-size: 40px; margin-bottom: 10px; }
-.empty-text { font-size: 14px; color: var(–text3); font-weight: 500; }
+.empty-text { font-size: 14px; color: var(--text3); font-weight: 500; }
 
 /* ── EXPORT ── */
 .export-section { padding: 14px 16px; }
-.export-card { background: var(–surface); border-radius: var(–radius); padding: 16px; box-shadow: var(–shadow); margin-bottom: 12px; }
-.export-card-title { font-size: 12px; font-weight: 700; color: var(–text2); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.export-card { background: var(--surface); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; }
+.export-card-title { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 .stat-row { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 10px; }
-.stat-box { background: var(–surface2); border-radius: 8px; padding: 12px; text-align: center; border: 1.5px solid var(–border); }
-.stat-num { font-family: ‘JetBrains Mono’, monospace; font-size: 22px; font-weight: 700; color: var(–accent); }
-.stat-lbl { font-size: 11px; color: var(–text3); margin-top: 2px; }
+.stat-box { background: var(--surface2); border-radius: 8px; padding: 12px; text-align: center; border: 1.5px solid var(--border); }
+.stat-num { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--accent); }
+.stat-lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
 
 .preview-box {
-background: #F8F9FA; border: 1px solid var(–border); border-radius: 8px;
-padding: 12px; font-family: ‘JetBrains Mono’, monospace; font-size: 10px;
-color: var(–text2); line-height: 1.9; white-space: pre-wrap; max-height: 240px; overflow-y: auto;
-margin-bottom: 12px;
+  background: #F8F9FA; border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--text2); line-height: 1.9; white-space: pre-wrap; max-height: 240px; overflow-y: auto;
+  margin-bottom: 12px;
 }
 .btn-row { display: flex; gap: 8px; }
 .btn {
-flex: 1; padding: 12px 8px; border-radius: var(–radius); border: none; cursor: pointer;
-font-family: ‘Noto Sans TC’, sans-serif; font-size: 13px; font-weight: 700;
-transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+  flex: 1; padding: 12px 8px; border-radius: var(--radius); border: none; cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 13px; font-weight: 700;
+  transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
 }
 .btn:active { transform: scale(0.96); }
-.btn-primary { background: linear-gradient(135deg, var(–accent), var(–accent-dark)); color: #FFF; box-shadow: 0 3px 12px rgba(230,126,34,0.25); }
-.btn-outline { background: var(–surface2); color: var(–text); border: 1.5px solid var(–border2); }
-.btn-danger { background: rgba(231,76,60,0.08); color: var(–red); border: 1.5px solid rgba(231,76,60,0.3); }
-.btn-blue { background: var(–blue-light); color: var(–blue); border: 1.5px solid rgba(41,128,185,0.3); }
+.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #FFF; box-shadow: 0 3px 12px rgba(230,126,34,0.25); }
+.btn-outline { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border2); }
+.btn-danger { background: rgba(231,76,60,0.08); color: var(--red); border: 1.5px solid rgba(231,76,60,0.3); }
+.btn-blue { background: var(--blue-light); color: var(--blue); border: 1.5px solid rgba(41,128,185,0.3); }
 
 /* ── MODAL ── */
 .modal-overlay {
-position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-z-index: 200; display: none; align-items: flex-end;
-backdrop-filter: blur(4px);
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 200; display: none; align-items: flex-end;
+  backdrop-filter: blur(4px);
 }
 .modal-overlay.open { display: flex; }
 .modal-sheet {
-background: var(–surface); border-radius: 20px 20px 0 0;
-width: 100%; max-height: 85vh; overflow-y: auto; padding: 20px;
-animation: sheetUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  width: 100%; max-height: 85vh; overflow-y: auto; padding: 20px;
+  animation: sheetUp 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
 @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.modal-handle { width: 40px; height: 4px; background: var(–border); border-radius: 2px; margin: 0 auto 16px; }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
 .modal-title { font-size: 17px; font-weight: 900; margin-bottom: 16px; }
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.detail-box { background: var(–surface2); border-radius: 8px; padding: 10px 12px; }
-.detail-box-label { font-size: 10px; font-weight: 700; color: var(–text3); margin-bottom: 4px; }
-.detail-box-val { font-family: ‘JetBrains Mono’, monospace; font-size: 18px; font-weight: 700; color: var(–text); }
-.detail-box-val.accent { color: var(–accent); }
-.detail-box-val.green { color: var(–green); }
+.detail-box { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+.detail-box-label { font-size: 10px; font-weight: 700; color: var(--text3); margin-bottom: 4px; }
+.detail-box-val { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--text); }
+.detail-box-val.accent { color: var(--accent); }
+.detail-box-val.green { color: var(--green); }
 .detail-box.full { grid-column: 1 / -1; }
-.detail-box.note-box .detail-box-val { font-family: ‘Noto Sans TC’, sans-serif; font-size: 14px; color: var(–red); }
+.detail-box.note-box .detail-box-val { font-family: 'Noto Sans TC', sans-serif; font-size: 14px; color: var(--red); }
 
 /* ── TOAST ── */
 .toast {
-position: fixed; bottom: 90px; left: 50%;
-transform: translateX(-50%) translateY(16px);
-background: #1A1D27; color: #FFF; padding: 10px 20px;
-border-radius: 24px; font-size: 13px; font-weight: 700;
-opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none;
-white-space: nowrap; box-shadow: var(–shadow-lg);
-display: flex; align-items: center; gap: 6px;
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: #1A1D27; color: #FFF; padding: 10px 20px;
+  border-radius: 24px; font-size: 13px; font-weight: 700;
+  opacity: 0; transition: all 0.3s; z-index: 999; pointer-events: none;
+  white-space: nowrap; box-shadow: var(--shadow-lg);
+  display: flex; align-items: center; gap: 6px;
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* ── BOTTOM NAV ── */
 .bottom-nav {
-position: fixed; bottom: 0; left: 0; right: 0;
-background: var(–surface); border-top: 1px solid var(–border);
-display: flex; padding-bottom: env(safe-area-inset-bottom);
-box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-top: 1px solid var(--border);
+  display: flex; padding-bottom: env(safe-area-inset-bottom);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
 }
 .nav-item {
-flex: 1; padding: 10px 0; text-align: center; cursor: pointer;
-font-size: 10px; font-weight: 700; color: var(–text3);
-border: none; background: transparent; transition: color 0.2s;
+  flex: 1; padding: 10px 0; text-align: center; cursor: pointer;
+  font-size: 10px; font-weight: 700; color: var(--text3);
+  border: none; background: transparent; transition: color 0.2s;
 }
-.nav-item.active { color: var(–accent); }
+.nav-item.active { color: var(--accent); }
 .nav-icon { font-size: 22px; display: block; margin-bottom: 2px; }
 
 /* Section panels */
@@ -324,66 +326,64 @@ border: none; background: transparent; transition: color 0.2s;
 .panel.active { display: block; }
 
 /* Delete swipe hint */
-.swipe-hint { font-size: 10px; color: var(–text3); text-align: center; padding: 6px 0 0; }
+.swipe-hint { font-size: 10px; color: var(--text3); text-align: center; padding: 6px 0 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── COMBOBOX ── */
 .combo-wrap { position: relative; }
 .combo-select {
-width: 100%; background: var(–surface2); border: 1.5px solid var(–border);
-border-radius: 8px; color: var(–text); font-family: ‘Noto Sans TC’, sans-serif;
-font-size: 13px; padding: 8px 36px 8px 10px; outline: none;
--webkit-appearance: none; appearance: none; cursor: pointer;
-transition: border-color 0.2s;
+  width: 100%; background: var(--surface2); border: 1.5px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: 'Noto Sans TC', sans-serif;
+  font-size: 13px; padding: 8px 36px 8px 10px; outline: none;
+  -webkit-appearance: none; appearance: none; cursor: pointer;
+  transition: border-color 0.2s;
 }
-.combo-select:focus { border-color: var(–accent); box-shadow: 0 0 0 3px rgba(230,126,34,0.12); }
+.combo-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(230,126,34,0.12); }
 .combo-arrow {
-position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-pointer-events: none; font-size: 12px; color: var(–text3);
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  pointer-events: none; font-size: 12px; color: var(--text3);
 }
 .combo-add-row { display: flex; gap: 6px; margin-top: 6px; }
 .combo-add-input {
-flex: 1; background: var(–surface2); border: 1.5px dashed var(–border2);
-border-radius: 8px; color: var(–text); font-family: ‘Noto Sans TC’, sans-serif;
-font-size: 13px; padding: 7px 10px; outline: none;
+  flex: 1; background: var(--surface2); border: 1.5px dashed var(--border2);
+  border-radius: 8px; color: var(--text); font-family: 'Noto Sans TC', sans-serif;
+  font-size: 13px; padding: 7px 10px; outline: none;
 }
-.combo-add-input:focus { border-color: var(–accent); border-style: solid; }
+.combo-add-input:focus { border-color: var(--accent); border-style: solid; }
 .combo-add-btn {
-padding: 7px 12px; background: var(–accent); color: #fff;
-border: none; border-radius: 8px; font-size: 13px; font-weight: 700;
-cursor: pointer; white-space: nowrap;
+  padding: 7px 12px; background: var(--accent); color: #fff;
+  border: none; border-radius: 8px; font-size: 13px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
 }
 .combo-add-btn:active { opacity: 0.8; }
 .combo-del-btn {
-padding: 7px 10px; background: rgba(231,76,60,0.08); color: var(–red);
-border: 1.5px solid rgba(231,76,60,0.25); border-radius: 8px; font-size: 12px;
-cursor: pointer; white-space: nowrap;
+  padding: 7px 10px; background: rgba(231,76,60,0.08); color: var(--red);
+  border: 1.5px solid rgba(231,76,60,0.25); border-radius: 8px; font-size: 12px;
+  cursor: pointer; white-space: nowrap;
 }
 
 /* ── 手孔調查勾選 ── */
 .sv-check-label {
-display:flex; align-items:center; gap:6px;
-background:var(–surface2); border:1.5px solid var(–border);
-border-radius:8px; padding:8px 10px; cursor:pointer;
-font-size:13px; font-weight:500; color:var(–text); transition:all 0.15s;
+  display:flex; align-items:center; gap:6px;
+  background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:8px; padding:8px 10px; cursor:pointer;
+  font-size:13px; font-weight:500; color:var(--text); transition:all 0.15s;
 }
 .sv-check-label:has(input:checked) {
-background:var(–accent-light); border-color:var(–accent); color:var(–accent); font-weight:700;
+  background:var(--accent-light); border-color:var(--accent); color:var(--accent); font-weight:700;
 }
-.sv-check-label input { accent-color:var(–accent); width:15px; height:15px; cursor:pointer; }
+.sv-check-label input { accent-color:var(--accent); width:15px; height:15px; cursor:pointer; }
 
 /* ── 匯出區塊嵌入分隔線 ── */
 .export-divider {
-margin: 8px 0 4px;
-border: none; border-top: 2px dashed var(–border2);
+  margin: 8px 0 4px;
+  border: none; border-top: 2px dashed var(--border2);
 }
 </style>
-
 </head>
 <body>
 
 <!-- HEADER -->
-
 <div class="header">
   <div class="header-row">
     <div class="header-logo">
@@ -398,7 +398,6 @@ border: none; border-top: 2px dashed var(–border2);
 </div>
 
 <!-- PROJECT BAR -->
-
 <div class="project-bar" onclick="toggleProject()">
   <div class="project-bar-inner">
     <div class="project-bar-label">📋 工程名稱</div>
@@ -408,63 +407,60 @@ border: none; border-top: 2px dashed var(–border2);
 <div class="project-expand" id="projExpand">
   <div class="proj-grid">
 
-```
-<div class="proj-field full">
-  <label>工程名稱</label>
-  <div class="combo-wrap">
-    <select class="combo-select" id="projName" onchange="updateProjBar()">
-      <option value="">請選擇或新增...</option>
-    </select>
-    <span class="combo-arrow">▼</span>
-  </div>
-  <div class="combo-add-row">
-    <input class="combo-add-input" id="projNameNew" placeholder="輸入新工程名稱後按＋">
-    <button class="combo-add-btn" onclick="addOption('projName','projNameNew','proj_names')">＋</button>
-    <button class="combo-del-btn" onclick="delOption('projName','proj_names')" title="刪除選取">✕</button>
-  </div>
-</div>
+    <div class="proj-field full">
+      <label>工程名稱</label>
+      <div class="combo-wrap">
+        <select class="combo-select" id="projName" onchange="updateProjBar()">
+          <option value="">請選擇或新增...</option>
+        </select>
+        <span class="combo-arrow">▼</span>
+      </div>
+      <div class="combo-add-row">
+        <input class="combo-add-input" id="projNameNew" placeholder="輸入新工程名稱後按＋">
+        <button class="combo-add-btn" onclick="addOption('projName','projNameNew','proj_names')">＋</button>
+        <button class="combo-del-btn" onclick="delOption('projName','proj_names')" title="刪除選取">✕</button>
+      </div>
+    </div>
 
-<div class="proj-field full">
-  <label>施工日期</label>
-  <input id="projDate" type="date" onchange="saveProject()">
-</div>
+    <div class="proj-field full">
+      <label>施工日期</label>
+      <input id="projDate" type="date" onchange="saveProject()">
+    </div>
 
-<div class="proj-field">
-  <label>承包廠商</label>
-  <div class="combo-wrap">
-    <select class="combo-select" id="projVendor" onchange="saveProject()">
-      <option value="">請選擇或新增...</option>
-    </select>
-    <span class="combo-arrow">▼</span>
-  </div>
-  <div class="combo-add-row">
-    <input class="combo-add-input" id="projVendorNew" placeholder="新廠商名稱">
-    <button class="combo-add-btn" onclick="addOption('projVendor','projVendorNew','proj_vendors')">＋</button>
-    <button class="combo-del-btn" onclick="delOption('projVendor','proj_vendors')">✕</button>
-  </div>
-</div>
+    <div class="proj-field">
+      <label>承包廠商</label>
+      <div class="combo-wrap">
+        <select class="combo-select" id="projVendor" onchange="saveProject()">
+          <option value="">請選擇或新增...</option>
+        </select>
+        <span class="combo-arrow">▼</span>
+      </div>
+      <div class="combo-add-row">
+        <input class="combo-add-input" id="projVendorNew" placeholder="新廠商名稱">
+        <button class="combo-add-btn" onclick="addOption('projVendor','projVendorNew','proj_vendors')">＋</button>
+        <button class="combo-del-btn" onclick="delOption('projVendor','proj_vendors')">✕</button>
+      </div>
+    </div>
 
-<div class="proj-field">
-  <label>監造單位</label>
-  <div class="combo-wrap">
-    <select class="combo-select" id="projSuper" onchange="saveProject()">
-      <option value="">請選擇或新增...</option>
-    </select>
-    <span class="combo-arrow">▼</span>
-  </div>
-  <div class="combo-add-row">
-    <input class="combo-add-input" id="projSuperNew" placeholder="新監造單位">
-    <button class="combo-add-btn" onclick="addOption('projSuper','projSuperNew','proj_supers')">＋</button>
-    <button class="combo-del-btn" onclick="delOption('projSuper','proj_supers')">✕</button>
-  </div>
-</div>
-```
+    <div class="proj-field">
+      <label>監造單位</label>
+      <div class="combo-wrap">
+        <select class="combo-select" id="projSuper" onchange="saveProject()">
+          <option value="">請選擇或新增...</option>
+        </select>
+        <span class="combo-arrow">▼</span>
+      </div>
+      <div class="combo-add-row">
+        <input class="combo-add-input" id="projSuperNew" placeholder="新監造單位">
+        <button class="combo-add-btn" onclick="addOption('projSuper','projSuperNew','proj_supers')">＋</button>
+        <button class="combo-del-btn" onclick="delOption('projSuper','proj_supers')">✕</button>
+      </div>
+    </div>
 
   </div>
 </div>
 
 <!-- LIVE TOTALS -->
-
 <div class="totals-bar">
   <div class="total-item">
     <div class="total-label">筆數</div>
@@ -484,7 +480,6 @@ border: none; border-top: 2px dashed var(–border2);
 </div>
 
 <!-- SECTION TABS -->
-
 <div class="section-tabs" id="secTabs">
   <div class="sec-tab active" onclick="switchPanel('input',this)">➕ 新增量測(方正)</div>
   <div class="sec-tab" onclick="switchPanel('table',this)">📋 記錄表格</div>
@@ -494,188 +489,185 @@ border: none; border-top: 2px dashed var(–border2);
 </div>
 
 <!-- ════ INPUT PANEL ════ -->
-
 <div class="panel active" id="panel-input">
   <div class="input-section">
 
-```
-<div class="input-card">
-  <div class="input-card-title" style="justify-content:space-between;">
-    <div style="display:flex;align-items:center;gap:6px;"><span>📍</span> 量測兩個數字就好</div>
-    <button onclick="clearAll()" title="刪除所有區塊記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
-  </div>
-
-  <!-- 路段名稱 -->
-  <div class="irow">
-    <div class="ifield">
-      <label>路段名稱</label>
-      <input id="projSeg" placeholder="例：重慶路" oninput="saveProject()" autocomplete="off">
-    </div>
-  </div>
-
-  <!-- ── 區塊選擇器 ── -->
-  <div style="background:var(--blue-light);border:1.5px solid rgba(41,128,185,0.25);border-radius:var(--radius);padding:10px 12px;margin:6px 0 10px;">
-    <div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:8px;">📦 量測區塊</div>
-
-    <!-- 目前區塊顯示 + 切換 -->
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-      <select id="segSelect" onchange="switchSegment(this.value)"
-        style="flex:1;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-weight:700;padding:7px 10px;outline:none;">
-      </select>
-      <button onclick="deleteSegment()" title="刪除目前區塊" style="padding:7px 10px;background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;font-size:15px;cursor:pointer;flex-shrink:0;">🗑</button>
-    </div>
-
-    <!-- 新增區塊 -->
-    <div style="display:flex;gap:6px;">
-      <input id="newSegName" placeholder="例：第1塊"
-        style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;"
-        onkeydown="if(event.key==='Enter') addSegment()">
-      <button onclick="addSegment()" style="padding:7px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">＋新增</button>
-    </div>
-  </div>
-
-  <!-- 樁位 -->
-  <div class="irow">
-    <div class="ifield">
-      <label>樁位（公尺）</label>
-      <div class="unit-wrap">
-        <input type="number" class="mono" id="iStake" placeholder="0、20、213.6"
-          min="0" step="0.1" inputmode="decimal"
-          oninput="liveCalc()" autocomplete="off">
-        <span class="unit">m</span>
+    <div class="input-card">
+      <div class="input-card-title" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:6px;"><span>📍</span> 量測兩個數字就好</div>
+        <button onclick="clearAll()" title="刪除所有區塊記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
       </div>
-      <div style="display:flex;gap:6px;margin-top:6px;">
-        <button onclick="adjustStake(1)"  style="flex:1;padding:7px 0;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;">+1</button>
-        <button onclick="adjustStake(10)" style="flex:1;padding:7px 0;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;">+10</button>
-        <button onclick="resetStake()"   style="flex:1;padding:7px 0;background:var(--surface2);color:var(--text3);border:1.5px solid var(--border2);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">重置</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- 寬度 -->
-  <div class="irow">
-    <div class="ifield">
-      <label>量測寬度 (M)</label>
-      <div class="unit-wrap">
-        <input type="number" id="iWidth" placeholder="3.96" step="0.01" inputmode="decimal" oninput="liveCalc()">
-        <span class="unit">M</span>
+      <!-- 路段名稱 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>路段名稱</label>
+          <input id="projSeg" placeholder="例：重慶路" oninput="saveProject()" autocomplete="off">
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- 備註 -->
-  <div class="irow">
-    <div class="ifield">
-      <label>備註 <span style="color:var(--text3);font-size:10px;font-weight:400">（選填）</span></label>
-      <input id="iNote" placeholder="例：防撞樁19支、改三3/4...">
-    </div>
-  </div>
+      <!-- ── 區塊選擇器 ── -->
+      <div style="background:var(--blue-light);border:1.5px solid rgba(41,128,185,0.25);border-radius:var(--radius);padding:10px 12px;margin:6px 0 10px;">
+        <div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:8px;">📦 量測區塊</div>
 
-  <div style="display:flex;flex-direction:column;gap:8px;">
-    <button class="btn-add" onclick="addRow()">✅ 確認加入記錄</button>
-  </div>
+        <!-- 目前區塊顯示 + 切換 -->
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <select id="segSelect" onchange="switchSegment(this.value)"
+            style="flex:1;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-weight:700;padding:7px 10px;outline:none;">
+          </select>
+          <button onclick="deleteSegment()" title="刪除目前區塊" style="padding:7px 10px;background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;font-size:15px;cursor:pointer;flex-shrink:0;">🗑</button>
+        </div>
 
-  <!-- 自動計算預覽卡片 -->
-  <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin:10px 0;">
-    <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px;">⚙️ 自動計算（無需填寫）</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">支距</div>
-        <div id="autoDistDisplay" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--blue);">—</div>
-        <div style="font-size:9px;color:var(--text3);">M</div>
+        <!-- 新增區塊 -->
+        <div style="display:flex;gap:6px;">
+          <input id="newSegName" placeholder="例：第1塊"
+            style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;"
+            onkeydown="if(event.key==='Enter') addSegment()">
+          <button onclick="addSegment()" style="padding:7px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">＋新增</button>
+        </div>
       </div>
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">平均寬度</div>
-        <div id="autoAvgDisplay" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--blue);">—</div>
-        <div style="font-size:9px;color:var(--text3);">M</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">本筆面積</div>
-        <div id="autoAreaDisplay" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--green);">—</div>
-        <div style="font-size:9px;color:var(--text3);">M²</div>
-      </div>
-    </div>
-    <!-- 累計 -->
-    <div id="autoCumulDisplay" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);justify-content:space-between;align-items:center;">
-      <span style="font-size:11px;color:var(--text3);">加入後累計面積</span>
-      <span id="autoCumulVal" style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);">— M²</span>
-    </div>
-    <!-- 第一筆提示 -->
-    <div id="firstRowHint" style="margin-top:8px;font-size:11px;color:var(--text3);text-align:center;display:none;">
-      ℹ️ 第一筆只記錄寬度，面積從第二筆開始計算
-    </div>
-  </div>
 
+      <!-- 樁位 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>樁位（公尺）</label>
+          <div class="unit-wrap">
+            <input type="number" class="mono" id="iStake" placeholder="0、20、213.6"
+              min="0" step="0.1" inputmode="decimal"
+              oninput="liveCalc()" autocomplete="off">
+            <span class="unit">m</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button onclick="adjustStake(1)"  style="flex:1;padding:7px 0;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;">+1</button>
+            <button onclick="adjustStake(10)" style="flex:1;padding:7px 0;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;">+10</button>
+            <button onclick="resetStake()"   style="flex:1;padding:7px 0;background:var(--surface2);color:var(--text3);border:1.5px solid var(--border2);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">重置</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 寬度 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>量測寬度 (M)</label>
+          <div class="unit-wrap">
+            <input type="number" id="iWidth" placeholder="3.96" step="0.01" inputmode="decimal" oninput="liveCalc()">
+            <span class="unit">M</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 備註 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>備註 <span style="color:var(--text3);font-size:10px;font-weight:400">（選填）</span></label>
+          <input id="iNote" placeholder="例：防撞樁19支、改三3/4...">
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn-add" onclick="addRow()">✅ 確認加入記錄</button>
+      </div>
+
+      <!-- 自動計算預覽卡片 -->
+      <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin:10px 0;">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px;">⚙️ 自動計算（無需填寫）</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">支距</div>
+            <div id="autoDistDisplay" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--blue);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">平均寬度</div>
+            <div id="autoAvgDisplay" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--blue);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">本筆面積</div>
+            <div id="autoAreaDisplay" style="font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--green);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M²</div>
+          </div>
+        </div>
+        <!-- 累計 -->
+        <div id="autoCumulDisplay" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:var(--text3);">加入後累計面積</span>
+          <span id="autoCumulVal" style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);">— M²</span>
+        </div>
+        <!-- 第一筆提示 -->
+        <div id="firstRowHint" style="margin-top:8px;font-size:11px;color:var(--text3);text-align:center;display:none;">
+          ℹ️ 第一筆只記錄寬度，面積從第二筆開始計算
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 上一筆提示 -->
+    <div id="prevRowInfo" style="display:none;background:var(--green-light);border:1.5px solid rgba(39,174,96,0.25);border-radius:var(--radius);padding:10px 14px;margin-top:0;">
+      <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px;">📌 上一筆記錄</div>
+      <div id="prevRowText" style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;"></div>
+    </div>
+
+    <!-- ════ 匯出報表（整合於新增量測頁） ════ -->
+    <hr class="export-divider">
+
+    <div class="export-section" style="padding: 8px 0 0;">
+
+      <div class="export-card">
+        <div class="export-card-title">📄 報表預覽</div>
+        <div class="preview-box" id="previewBox">尚無資料</div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="copyReport()">📋 複製</button>
+        </div>
+      </div>
+
+      <div class="export-card">
+        <div class="export-card-title">📊 統計摘要</div>
+        <div class="stat-row">
+          <div class="stat-box"><div class="stat-num" id="eCount">0</div><div class="stat-lbl">量測筆數</div></div>
+          <div class="stat-box"><div class="stat-num" id="eTotalArea">0</div><div class="stat-lbl">面積合計 M²</div></div>
+          <div class="stat-box"><div class="stat-num" id="eMaxWidth">—</div><div class="stat-lbl">最大寬度 M</div></div>
+          <div class="stat-box"><div class="stat-num" id="eAvgWidth">—</div><div class="stat-lbl">平均寬度 M</div></div>
+        </div>
+      </div>
+
+      <div class="export-card">
+        <div class="btn-row">
+          <button class="btn btn-blue" onclick="downloadXLSX()">⬇ 簡易Excel</button>
+        </div>
+      </div>
+
+      <div class="export-card">
+        <div class="export-card-title" style="color:var(--accent)">🏗️ 產生格式報表（公司原版格式）</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
+          使用 AI 產生與公司原版完全相同格式的 Excel，包含<b>標楷體字體、框線、合併儲存格、樁號格式</b>，需要網路連線。
+        </div>
+
+        <!-- 進度狀態 -->
+        <div id="fmtStatus" style="display:none;background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--text2);">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div id="fmtSpinner" style="width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
+            <span id="fmtMsg">準備中...</span>
+          </div>
+          <div id="fmtBar" style="height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden;display:none;">
+            <div id="fmtBarInner" style="height:100%;background:var(--accent);width:0%;transition:width 0.4s;border-radius:2px;"></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="fmtBtn" onclick="generateFormattedExcel()" style="background:linear-gradient(135deg,#27AE60,#1e8449);flex:1;">
+            🚀 產生公司格式 Excel
+          </button>
+        </div>
+      </div>
+
+    </div>
+    <!-- ════ 匯出報表結束 ════ -->
+
+  </div>
 </div>
 
-<!-- 上一筆提示 -->
-<div id="prevRowInfo" style="display:none;background:var(--green-light);border:1.5px solid rgba(39,174,96,0.25);border-radius:var(--radius);padding:10px 14px;margin-top:0;">
-  <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px;">📌 上一筆記錄</div>
-  <div id="prevRowText" style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;"></div>
-</div>
-
-<!-- ════ 匯出報表（整合於新增量測頁） ════ -->
-<hr class="export-divider">
-
-<div class="export-section" style="padding: 8px 0 0;">
-
-  <div class="export-card">
-    <div class="export-card-title">📄 報表預覽</div>
-    <div class="preview-box" id="previewBox">尚無資料</div>
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="copyReport()">📋 複製</button>
-    </div>
-  </div>
-
-  <div class="export-card">
-    <div class="export-card-title">📊 統計摘要</div>
-    <div class="stat-row">
-      <div class="stat-box"><div class="stat-num" id="eCount">0</div><div class="stat-lbl">量測筆數</div></div>
-      <div class="stat-box"><div class="stat-num" id="eTotalArea">0</div><div class="stat-lbl">面積合計 M²</div></div>
-      <div class="stat-box"><div class="stat-num" id="eMaxWidth">—</div><div class="stat-lbl">最大寬度 M</div></div>
-      <div class="stat-box"><div class="stat-num" id="eAvgWidth">—</div><div class="stat-lbl">平均寬度 M</div></div>
-    </div>
-  </div>
-
-  <div class="export-card">
-    <div class="btn-row">
-      <button class="btn btn-blue" onclick="downloadXLSX()">⬇ 簡易Excel</button>
-    </div>
-  </div>
-
-  <div class="export-card">
-    <div class="export-card-title" style="color:var(--accent)">🏗️ 產生格式報表（公司原版格式）</div>
-    <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;">
-      使用 AI 產生與公司原版完全相同格式的 Excel，包含<b>標楷體字體、框線、合併儲存格、樁號格式</b>，需要網路連線。
-    </div>
-
-    <!-- 進度狀態 -->
-    <div id="fmtStatus" style="display:none;background:var(--surface2);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:12px;color:var(--text2);">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div id="fmtSpinner" style="width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></div>
-        <span id="fmtMsg">準備中...</span>
-      </div>
-      <div id="fmtBar" style="height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden;display:none;">
-        <div id="fmtBarInner" style="height:100%;background:var(--accent);width:0%;transition:width 0.4s;border-radius:2px;"></div>
-      </div>
-    </div>
-
-    <div class="btn-row">
-      <button class="btn btn-primary" id="fmtBtn" onclick="generateFormattedExcel()" style="background:linear-gradient(135deg,#27AE60,#1e8449);flex:1;">
-        🚀 產生公司格式 Excel
-      </button>
-    </div>
-  </div>
-
-</div>
-<!-- ════ 匯出報表結束 ════ -->
-```
-
-  </div>
-</div>
 
 <!-- ════ TABLE PANEL ════ -->
-
 <div class="panel" id="panel-table">
   <div class="table-section">
     <div class="table-header-row">
@@ -705,313 +697,303 @@ border: none; border-top: 2px dashed var(–border2);
 </div>
 
 <!-- ════ MANHOLE PANEL ════ -->
-
 <div class="panel" id="panel-manhole">
   <div class="input-section">
 
-```
-<!-- 輸入卡片 -->
-<div class="input-card">
-  <div class="input-card-title" style="justify-content:space-between;">
-    <div style="display:flex;align-items:center;gap:6px;"><span>🕳️</span> 新增人手孔記錄</div>
-    <button onclick="clearManhole()" title="清除所有人手孔記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
-  </div>
-
-  <!-- 路段名稱 -->
-  <div class="irow">
-    <div class="ifield">
-      <label>路段名稱 <span style="color:var(--text3);font-size:10px;font-weight:400">（選填，留空繼續上一路段）</span></label>
-      <input id="mhSeg" placeholder="例：民族路273巷" autocomplete="off">
-    </div>
-  </div>
-
-  <div class="irow">
-    <!-- 樁號 -->
-    <div class="ifield">
-      <label>樁號（公尺）</label>
-      <div class="unit-wrap">
-        <input type="number" class="mono" id="mhStake" placeholder="1、12、195" min="0" step="0.1" inputmode="decimal" oninput="mhLiveCalc()">
-        <span class="unit">m</span>
+    <!-- 輸入卡片 -->
+    <div class="input-card">
+      <div class="input-card-title" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:6px;"><span>🕳️</span> 新增人手孔記錄</div>
+        <button onclick="clearManhole()" title="清除所有人手孔記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
       </div>
-    </div>
-    <!-- 相對位置 -->
-    <div class="ifield" style="max-width:110px;">
-      <label>相對位置</label>
-      <input id="mhPos" placeholder="L1、R2…" autocomplete="off" style="font-family:'JetBrains Mono',monospace;font-size:14px;" oninput="mhLiveCalc()">
-      <div style="display:flex;gap:4px;margin-top:5px;">
-        <button id="btnL" onclick="setPosPrefix('L')" style="flex:1;padding:5px 0;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;">L1</button>
-        <button id="btnR" onclick="setPosPrefix('R')" style="flex:1;padding:5px 0;background:var(--accent-light);color:var(--accent);border:1.5px solid rgba(230,126,34,0.35);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;">R1</button>
-        <button onclick="resetPosCounter()" title="重置計數" style="padding:5px 7px;background:var(--surface2);color:var(--text3);border:1.5px solid var(--border2);border-radius:6px;font-size:12px;cursor:pointer;">↺</button>
-      </div>
-    </div>
-  </div>
 
-  <div class="irow">
-    <!-- 長度 -->
-    <div class="ifield">
-      <label>長度 (M)</label>
-      <div class="unit-wrap">
-        <input type="number" id="mhLen" placeholder="0.6" step="0.1" inputmode="decimal" oninput="mhLiveCalc()">
-        <span class="unit">M</span>
+      <!-- 路段名稱 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>路段名稱 <span style="color:var(--text3);font-size:10px;font-weight:400">（選填，留空繼續上一路段）</span></label>
+          <input id="mhSeg" placeholder="例：民族路273巷" autocomplete="off">
+        </div>
       </div>
-    </div>
-    <!-- 寬度 -->
-    <div class="ifield">
-      <label>寬度 (M)</label>
-      <div class="unit-wrap">
-        <input type="number" id="mhWid" placeholder="0.6" step="0.1" inputmode="decimal" oninput="mhLiveCalc()">
-        <span class="unit">M</span>
-      </div>
-    </div>
-  </div>
 
-  <!-- 管線單位 -->
-  <div class="irow">
-    <div class="ifield">
-      <label>管線單位</label>
-      <div class="combo-wrap">
-        <select id="mhUnit" class="combo-select" style="font-size:15px;padding:10px 36px 10px 10px;">
-          <option value="">請選擇...</option>
-          <option value="台電">台電</option>
-          <option value="中華電信">中華電信</option>
-          <option value="瓦斯">瓦斯</option>
-          <option value="制水閥">制水閥</option>
-          <option value="汙水">汙水</option>
-          <option value="雨水">雨水</option>
-          <option value="消防">消防</option>
-          <option value="數位天空">數位天空</option>
-          <option value="其他">其他</option>
-        </select>
-        <span class="combo-arrow">▼</span>
+      <div class="irow">
+        <!-- 樁號 -->
+        <div class="ifield">
+          <label>樁號（公尺）</label>
+          <div class="unit-wrap">
+            <input type="number" class="mono" id="mhStake" placeholder="1、12、195" min="0" step="0.1" inputmode="decimal" oninput="mhLiveCalc()">
+            <span class="unit">m</span>
+          </div>
+        </div>
+        <!-- 相對位置 -->
+        <div class="ifield" style="max-width:110px;">
+          <label>相對位置</label>
+          <input id="mhPos" placeholder="L1、R2…" autocomplete="off" style="font-family:'JetBrains Mono',monospace;font-size:14px;" oninput="mhLiveCalc()">
+          <div style="display:flex;gap:4px;margin-top:5px;">
+            <button id="btnL" onclick="setPosPrefix('L')" style="flex:1;padding:5px 0;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;">L1</button>
+            <button id="btnR" onclick="setPosPrefix('R')" style="flex:1;padding:5px 0;background:var(--accent-light);color:var(--accent);border:1.5px solid rgba(230,126,34,0.35);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;">R1</button>
+            <button onclick="resetPosCounter()" title="重置計數" style="padding:5px 7px;background:var(--surface2);color:var(--text3);border:1.5px solid var(--border2);border-radius:6px;font-size:12px;cursor:pointer;">↺</button>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
 
-  <!-- 自動計算預覽（隱藏） -->
-  <div style="display:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin:10px 0;">
-    <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px;">⚙️ 自動計算</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">本筆面積</div>
-        <div id="mhAreaDisplay" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--green);">—</div>
+      <div class="irow">
+        <!-- 長度 -->
+        <div class="ifield">
+          <label>長度 (M)</label>
+          <div class="unit-wrap">
+            <input type="number" id="mhLen" placeholder="0.6" step="0.1" inputmode="decimal" oninput="mhLiveCalc()">
+            <span class="unit">M</span>
+          </div>
+        </div>
+        <!-- 寬度 -->
+        <div class="ifield">
+          <label>寬度 (M)</label>
+          <div class="unit-wrap">
+            <input type="number" id="mhWid" placeholder="0.6" step="0.1" inputmode="decimal" oninput="mhLiveCalc()">
+            <span class="unit">M</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 管線單位 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>管線單位</label>
+          <div class="combo-wrap">
+            <select id="mhUnit" class="combo-select" style="font-size:15px;padding:10px 36px 10px 10px;">
+              <option value="">請選擇...</option>
+              <option value="台電">台電</option>
+              <option value="中華電信">中華電信</option>
+              <option value="瓦斯">瓦斯</option>
+              <option value="制水閥">制水閥</option>
+              <option value="汙水">汙水</option>
+              <option value="雨水">雨水</option>
+              <option value="消防">消防</option>
+              <option value="數位天空">數位天空</option>
+              <option value="其他">其他</option>
+            </select>
+            <span class="combo-arrow">▼</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 自動計算預覽（隱藏） -->
+      <div style="display:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin:10px 0;">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.08em;margin-bottom:10px;">⚙️ 自動計算</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">本筆面積</div>
+            <div id="mhAreaDisplay" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--green);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M²</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">加入後累計</div>
+            <div id="mhCumulDisplay" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--accent);">—</div>
+            <div style="font-size:9px;color:var(--text3);">M²</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-add" onclick="addManholeRow()">✅ 確認加入記錄</button>
+    </div>
+
+    <!-- 人手孔統計 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:var(--surface);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;border:1.5px solid var(--border);">
+        <div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:0.08em;">筆數</div>
+        <div id="mhCount" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);">0</div>
+        <div style="font-size:9px;color:var(--text3);">筆</div>
+      </div>
+      <div style="background:var(--surface);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;border:1.5px solid var(--border);">
+        <div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:0.08em;">累計面積</div>
+        <div id="mhTotalDisplay" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);">0.00</div>
         <div style="font-size:9px;color:var(--text3);">M²</div>
       </div>
-      <div style="text-align:center;">
-        <div style="font-size:10px;color:var(--text3);margin-bottom:3px;">加入後累計</div>
-        <div id="mhCumulDisplay" style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--accent);">—</div>
-        <div style="font-size:9px;color:var(--text3);">M²</div>
+    </div>
+
+    <!-- 人手孔記錄表 -->
+    <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;">
+      <div style="display:grid;grid-template-columns:72px 52px 48px 48px 58px 64px 60px;background:linear-gradient(135deg,#1A1D27,#2E3450);padding:8px 6px;gap:2px;">
+        <div class="th">樁號</div>
+        <div class="th">位置</div>
+        <div class="th">長(M)</div>
+        <div class="th">寬(M)</div>
+        <div class="th accent">面積M²</div>
+        <div class="th accent">累計M²</div>
+        <div class="th">管線</div>
+      </div>
+      <div id="mhRows">
+        <div class="empty-state">
+          <div class="empty-icon">🕳️</div>
+          <div class="empty-text">尚無人手孔記錄<br><span style="font-size:12px">填寫上方資料後加入</span></div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <button class="btn-add" onclick="addManholeRow()">✅ 確認加入記錄</button>
-</div>
 
-<!-- 人手孔統計 -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-  <div style="background:var(--surface);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;border:1.5px solid var(--border);">
-    <div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:0.08em;">筆數</div>
-    <div id="mhCount" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);">0</div>
-    <div style="font-size:9px;color:var(--text3);">筆</div>
-  </div>
-  <div style="background:var(--surface);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;border:1.5px solid var(--border);">
-    <div style="font-size:9px;font-weight:700;color:var(--text3);letter-spacing:0.08em;">累計面積</div>
-    <div id="mhTotalDisplay" style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);">0.00</div>
-    <div style="font-size:9px;color:var(--text3);">M²</div>
-  </div>
-</div>
-
-<!-- 人手孔記錄表 -->
-<div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;">
-  <div style="display:grid;grid-template-columns:72px 52px 48px 48px 58px 64px 60px;background:linear-gradient(135deg,#1A1D27,#2E3450);padding:8px 6px;gap:2px;">
-    <div class="th">樁號</div>
-    <div class="th">位置</div>
-    <div class="th">長(M)</div>
-    <div class="th">寬(M)</div>
-    <div class="th accent">面積M²</div>
-    <div class="th accent">累計M²</div>
-    <div class="th">管線</div>
-  </div>
-  <div id="mhRows">
-    <div class="empty-state">
-      <div class="empty-icon">🕳️</div>
-      <div class="empty-text">尚無人手孔記錄<br><span style="font-size:12px">填寫上方資料後加入</span></div>
+    <!-- 匯出按鈕 -->
+    <div style="background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📤 匯出人手孔報表</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn" onclick="copyManholeToLine()" style="background:#06C755;color:#fff;font-size:14px;font-weight:700;border:none;">💬 複製 LINE 格式</button>
+        <div id="mhLinePreview" onclick="copyLineText(this)" style="display:none;background:#F0F2F5;border-radius:8px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);white-space:pre-wrap;line-height:1.9;border:1.5px solid var(--border);cursor:pointer;user-select:all;" title="點擊複製"></div>
+        <button class="btn btn-blue" onclick="downloadManholeXLSX('simple')">⬇ 簡易 Excel</button>
+        <button class="btn btn-primary" onclick="downloadManholeXLSX('formatted')" style="background:linear-gradient(135deg,#27AE60,#1e8449);">🚀 產生公司格式 Excel</button>
+      </div>
     </div>
-  </div>
-</div>
-
-
-<!-- 匯出按鈕 -->
-<div style="background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
-  <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📤 匯出人手孔報表</div>
-  <div style="display:flex;flex-direction:column;gap:8px;">
-    <button class="btn" onclick="copyManholeToLine()" style="background:#06C755;color:#fff;font-size:14px;font-weight:700;border:none;">💬 複製 LINE 格式</button>
-    <div id="mhLinePreview" onclick="copyLineText(this)" style="display:none;background:#F0F2F5;border-radius:8px;padding:10px 12px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);white-space:pre-wrap;line-height:1.9;border:1.5px solid var(--border);cursor:pointer;user-select:all;" title="點擊複製"></div>
-    <button class="btn btn-blue" onclick="downloadManholeXLSX('simple')">⬇ 簡易 Excel</button>
-    <button class="btn btn-primary" onclick="downloadManholeXLSX('formatted')" style="background:linear-gradient(135deg,#27AE60,#1e8449);">🚀 產生公司格式 Excel</button>
-  </div>
-</div>
-```
 
   </div>
 </div>
 
 <!-- ════ SURVEY PANEL ════ -->
-
 <div class="panel" id="panel-survey">
   <div class="input-section">
 
-```
-<div class="input-card">
-  <div class="input-card-title" style="justify-content:space-between;">
-    <div style="display:flex;align-items:center;gap:6px;"><span>📋</span> 手孔調查記錄</div>
-    <button onclick="clearSurvey()" title="清除所有調查記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
-  </div>
+    <div class="input-card">
+      <div class="input-card-title" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:6px;"><span>📋</span> 手孔調查記錄</div>
+        <button onclick="clearSurvey()" title="清除所有調查記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
+      </div>
 
-  <!-- 地點位置 -->
-  <div class="irow">
-    <div class="ifield">
-      <label>地點位置</label>
-      <input id="svLocation" placeholder="例：永豐街49巷1號" autocomplete="off">
+      <!-- 地點位置 -->
+      <div class="irow">
+        <div class="ifield">
+          <label>地點位置</label>
+          <input id="svLocation" placeholder="例：永豐街49巷1號" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- 管線單位勾選 -->
+      <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:10px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:0.08em;">管線單位（可複選）</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;" id="svUnitGrid">
+          <label class="sv-check-label"><input type="checkbox" value="台電" onchange="svUpdatePreview()"><span>台電</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="中華電信" onchange="svUpdatePreview()"><span>中華電信</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="瓦斯" onchange="svUpdatePreview()"><span>瓦斯</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="制水閥" onchange="svUpdatePreview()"><span>制水閥</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="汙水" onchange="svUpdatePreview()"><span>汙水</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="雨水" onchange="svUpdatePreview()"><span>雨水</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="消防" onchange="svUpdatePreview()"><span>消防</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="數位天空" onchange="svUpdatePreview()"><span>數位天空</span></label>
+          <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;">
+            <input type="checkbox" id="svOtherCheck" onchange="svToggleOther();svUpdatePreview();" style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;">
+            <span style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;">其他：</span>
+            <input type="text" id="svOtherText" placeholder="請填入單位名稱" oninput="svUpdatePreview()" disabled
+              style="flex:1;background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text);opacity:0.4;">
+          </div>
+        </div>
+      </div>
+
+      <!-- 預覽 -->
+      <div id="svPreview" style="display:none;background:var(--green-light);border:1.5px solid rgba(39,174,96,0.3);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);">
+        <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px;">預覽</div>
+        <div><b>地點：</b><span id="svPreviewLoc"></span></div>
+        <div><b>單位：</b><span id="svPreviewUnits"></span></div>
+      </div>
+
+      <button class="btn-add" onclick="addSurveyRow()">✅ 確認加入記錄</button>
     </div>
-  </div>
 
-  <!-- 管線單位勾選 -->
-  <div style="margin-bottom:10px;">
-    <label style="display:block;font-size:10px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:0.08em;">管線單位（可複選）</label>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;" id="svUnitGrid">
-      <label class="sv-check-label"><input type="checkbox" value="台電" onchange="svUpdatePreview()"><span>台電</span></label>
-      <label class="sv-check-label"><input type="checkbox" value="中華電信" onchange="svUpdatePreview()"><span>中華電信</span></label>
-      <label class="sv-check-label"><input type="checkbox" value="瓦斯" onchange="svUpdatePreview()"><span>瓦斯</span></label>
-      <label class="sv-check-label"><input type="checkbox" value="制水閥" onchange="svUpdatePreview()"><span>制水閥</span></label>
-      <label class="sv-check-label"><input type="checkbox" value="汙水" onchange="svUpdatePreview()"><span>汙水</span></label>
-      <label class="sv-check-label"><input type="checkbox" value="雨水" onchange="svUpdatePreview()"><span>雨水</span></label>
-      <label class="sv-check-label"><input type="checkbox" value="消防" onchange="svUpdatePreview()"><span>消防</span></label>
-      <label class="sv-check-label"><input type="checkbox" value="數位天空" onchange="svUpdatePreview()"><span>數位天空</span></label>
-      <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;">
-        <input type="checkbox" id="svOtherCheck" onchange="svToggleOther();svUpdatePreview();" style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;">
-        <span style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;">其他：</span>
-        <input type="text" id="svOtherText" placeholder="請填入單位名稱" oninput="svUpdatePreview()" disabled
-          style="flex:1;background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text);opacity:0.4;">
+    <!-- 已加入的調查記錄 -->
+    <div id="svList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+
+    <!-- 匯出 -->
+    <div style="background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📤 匯出調查報表</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn btn-primary" onclick="downloadSurveyDocx()" style="background:linear-gradient(135deg,#2980B9,#1a5276);">📄 下載 Word 報表</button>
       </div>
     </div>
-  </div>
-
-  <!-- 預覽 -->
-  <div id="svPreview" style="display:none;background:var(--green-light);border:1.5px solid rgba(39,174,96,0.3);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);">
-    <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px;">預覽</div>
-    <div><b>地點：</b><span id="svPreviewLoc"></span></div>
-    <div><b>單位：</b><span id="svPreviewUnits"></span></div>
-  </div>
-
-  <button class="btn-add" onclick="addSurveyRow()">✅ 確認加入記錄</button>
-</div>
-
-<!-- 已加入的調查記錄 -->
-<div id="svList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-
-<!-- 匯出 -->
-<div style="background:var(--surface);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);margin-bottom:12px;">
-  <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;">📤 匯出調查報表</div>
-  <div style="display:flex;flex-direction:column;gap:8px;">
-    <button class="btn btn-primary" onclick="downloadSurveyDocx()" style="background:linear-gradient(135deg,#2980B9,#1a5276);">📄 下載 Word 報表</button>
-  </div>
-</div>
-```
 
   </div>
 </div>
 
 <!-- ════ PASTE PANEL ════ -->
-
 <div class="panel" id="panel-paste">
   <div class="export-section">
 
-```
-<div class="export-card">
-  <div class="export-card-title">📥 貼上文字自動轉換</div>
-  <div style="font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;">
-    將工程師傳來的量測文字貼入下方，格式如：<br>
-    <span style="font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:11px;">路段名稱（選填）<br>樁位 寬度<br>0 13.1<br>10 12.1<br>...</span>
-  </div>
+    <div class="export-card">
+      <div class="export-card-title">📥 貼上文字自動轉換</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;">
+        將工程師傳來的量測文字貼入下方，格式如：<br>
+        <span style="font-family:'JetBrains Mono',monospace;background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:11px;">路段名稱（選填）<br>樁位 寬度<br>0 13.1<br>10 12.1<br>...</span>
+      </div>
 
-  <!-- 工程資訊 -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-    <div class="proj-field">
-      <label>工程名稱</label>
-      <div class="combo-wrap">
-        <select class="combo-select" id="pasteProjectName" onchange="savePasteProject()">
-          <option value="">請選擇或輸入...</option>
-        </select>
-        <span class="combo-arrow">▼</span>
+      <!-- 工程資訊 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div class="proj-field">
+          <label>工程名稱</label>
+          <div class="combo-wrap">
+            <select class="combo-select" id="pasteProjectName" onchange="savePasteProject()">
+              <option value="">請選擇或輸入...</option>
+            </select>
+            <span class="combo-arrow">▼</span>
+          </div>
+        </div>
+        <div class="proj-field">
+          <label>施工日期</label>
+          <input type="date" id="pasteDate" onchange="savePasteProject()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;-webkit-appearance:none;">
+        </div>
+        <div class="proj-field">
+          <label>承包廠商</label>
+          <div class="combo-wrap">
+            <select class="combo-select" id="pasteVendor" onchange="savePasteProject()">
+              <option value="">請選擇或輸入...</option>
+            </select>
+            <span class="combo-arrow">▼</span>
+          </div>
+        </div>
+        <div class="proj-field">
+          <label>監造單位</label>
+          <div class="combo-wrap">
+            <select class="combo-select" id="pasteSuper" onchange="savePasteProject()">
+              <option value="">請選擇或輸入...</option>
+            </select>
+            <span class="combo-arrow">▼</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 貼上區 -->
+      <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:0.06em;">量測文字（貼入後自動解析）</div>
+      <textarea id="pasteInput" placeholder="和平路（廣和街至干城路）&#10;0 13.1&#10;10 12.1&#10;20 11.8&#10;30 10.2&#10;..." oninput="parsePasteText()"
+        style="width:100%;min-height:160px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;padding:12px;outline:none;resize:vertical;line-height:1.8;"></textarea>
+
+      <!-- 解析預覽 -->
+      <div id="parsePreview" style="display:none;margin-top:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px;">✅ 解析結果</div>
+        <div style="background:var(--green-light);border:1.5px solid rgba(39,174,96,0.3);border-radius:8px;padding:10px 12px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text2);">路段</span>
+            <span id="parseSeg" style="font-weight:700;color:var(--text);"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+            <span style="color:var(--text2);">筆數</span>
+            <span id="parseCount" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--blue);"></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;">
+            <span style="color:var(--text2);">面積合計</span>
+            <span id="parseTotal" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);"></span>
+          </div>
+        </div>
+        <!-- 解析後資料預覽表 -->
+        <div id="parseTable" style="margin-top:8px;overflow-x:auto;"></div>
+      </div>
+
+      <!-- 錯誤提示 -->
+      <div id="parseError" style="display:none;margin-top:8px;background:rgba(231,76,60,0.08);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red);"></div>
+
+      <!-- 下載按鈕 -->
+      <div id="parseBtns" style="display:none;margin-top:12px;display:none;flex-direction:column;gap:8px;">
+        <button class="btn btn-blue" onclick="downloadPasteXLSX('simple')">⬇ 下載簡易 Excel</button>
+        <button class="btn btn-primary" onclick="downloadPasteXLSX('formatted')" style="background:linear-gradient(135deg,#27AE60,#1e8449);">🚀 下載公司格式 Excel</button>
       </div>
     </div>
-    <div class="proj-field">
-      <label>施工日期</label>
-      <input type="date" id="pasteDate" onchange="savePasteProject()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:8px 10px;outline:none;-webkit-appearance:none;">
-    </div>
-    <div class="proj-field">
-      <label>承包廠商</label>
-      <div class="combo-wrap">
-        <select class="combo-select" id="pasteVendor" onchange="savePasteProject()">
-          <option value="">請選擇或輸入...</option>
-        </select>
-        <span class="combo-arrow">▼</span>
-      </div>
-    </div>
-    <div class="proj-field">
-      <label>監造單位</label>
-      <div class="combo-wrap">
-        <select class="combo-select" id="pasteSuper" onchange="savePasteProject()">
-          <option value="">請選擇或輸入...</option>
-        </select>
-        <span class="combo-arrow">▼</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 貼上區 -->
-  <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:0.06em;">量測文字（貼入後自動解析）</div>
-  <textarea id="pasteInput" placeholder="和平路（廣和街至干城路）&#10;0 13.1&#10;10 12.1&#10;20 11.8&#10;30 10.2&#10;..." oninput="parsePasteText()"
-    style="width:100%;min-height:160px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;padding:12px;outline:none;resize:vertical;line-height:1.8;"></textarea>
-
-  <!-- 解析預覽 -->
-  <div id="parsePreview" style="display:none;margin-top:10px;">
-    <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:6px;">✅ 解析結果</div>
-    <div style="background:var(--green-light);border:1.5px solid rgba(39,174,96,0.3);border-radius:8px;padding:10px 12px;">
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-        <span style="color:var(--text2);">路段</span>
-        <span id="parseSeg" style="font-weight:700;color:var(--text);"></span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
-        <span style="color:var(--text2);">筆數</span>
-        <span id="parseCount" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--blue);"></span>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:12px;">
-        <span style="color:var(--text2);">面積合計</span>
-        <span id="parseTotal" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent);"></span>
-      </div>
-    </div>
-    <!-- 解析後資料預覽表 -->
-    <div id="parseTable" style="margin-top:8px;overflow-x:auto;"></div>
-  </div>
-
-  <!-- 錯誤提示 -->
-  <div id="parseError" style="display:none;margin-top:8px;background:rgba(231,76,60,0.08);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--red);"></div>
-
-  <!-- 下載按鈕 -->
-  <div id="parseBtns" style="display:none;margin-top:12px;display:none;flex-direction:column;gap:8px;">
-    <button class="btn btn-blue" onclick="downloadPasteXLSX('simple')">⬇ 下載簡易 Excel</button>
-    <button class="btn btn-primary" onclick="downloadPasteXLSX('formatted')" style="background:linear-gradient(135deg,#27AE60,#1e8449);">🚀 下載公司格式 Excel</button>
-  </div>
-</div>
-```
 
   </div>
 </div>
 
 <!-- MANHOLE DETAIL MODAL -->
-
 <div class="modal-overlay" id="mhModal" onclick="closeMhModal(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -1025,7 +1007,6 @@ border: none; border-top: 2px dashed var(–border2);
 </div>
 
 <!-- DETAIL MODAL -->
-
 <div class="modal-overlay" id="modal" onclick="closeModal(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -2753,34 +2734,30 @@ async function downloadSurveyDocx() {
         body { font-family:標楷體,serif; font-size:12pt; }
         table { page-break-inside:avoid; }
       </style>
+    </head>
+    <body>${rowsHtml}</body>
+    </html>`;
 
-```
-</head>
-<body>${rowsHtml}</body>
-</html>`;
-```
-
-const blob = new Blob([’\ufeff’ + html], {
-type: ‘application/msword;charset=utf-8’
-});
-const url = URL.createObjectURL(blob);
-const a = document.createElement(‘a’);
-a.href = url;
-a.download = `手孔調查報表_${dateStr}.doc`;
-a.click();
-URL.revokeObjectURL(url);
-toast(‘✅ Word 報表已下載！’);
+  const blob = new Blob(['\ufeff' + html], {
+    type: 'application/msword;charset=utf-8'
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `手孔調查報表_${dateStr}.doc`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ Word 報表已下載！');
 }
 
 // 初始化調查清單
 renderSurveyList();
 
 function toast(msg) {
-const t = document.getElementById(‘toast’);
-t.textContent = msg;
-t.classList.add(‘show’);
-setTimeout(() => t.classList.remove(‘show’), 2400);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
 }
 </script>
-
 </body>
