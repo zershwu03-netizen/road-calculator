@@ -477,7 +477,6 @@ body {
 <!-- SECTION TABS -->
 <div class="section-tabs" id="secTabs">
   <div class="sec-tab active" onclick="switchPanel('input',this)">➕ 新增量測</div>
-  <div class="sec-tab" onclick="switchPanel('table',this)">📋 記錄表格</div>
   <div class="sec-tab" onclick="switchPanel('manhole',this)">🕳️ 施工後人孔</div>
   <div class="sec-tab" onclick="switchPanel('survey',this)">📋 人孔調查</div>
   <div class="sec-tab" onclick="switchPanel('paste',this)">📥 貼上轉換</div>
@@ -490,14 +489,35 @@ body {
     <div class="input-card">
       <div class="input-card-title" style="justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:6px;"><span>📍</span> 量測兩個數字就好</div>
-        <button onclick="clearAll()" title="刪除本路段所有記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
+        <button onclick="clearAll()" title="刪除所有區塊記錄" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;padding:4px 10px;font-size:16px;cursor:pointer;line-height:1;">🗑️</button>
       </div>
 
       <!-- 路段名稱 -->
       <div class="irow">
         <div class="ifield">
           <label>路段名稱</label>
-          <input id="projSeg" placeholder="例：華香橋上台65" oninput="saveProject()" autocomplete="off">
+          <input id="projSeg" placeholder="例：重慶路" oninput="saveProject()" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- ── 區塊選擇器 ── -->
+      <div style="background:var(--blue-light);border:1.5px solid rgba(41,128,185,0.25);border-radius:var(--radius);padding:10px 12px;margin:6px 0 10px;">
+        <div style="font-size:10px;font-weight:700;color:var(--blue);letter-spacing:0.08em;margin-bottom:8px;">📦 量測區塊</div>
+
+        <!-- 目前區塊顯示 + 切換 -->
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <select id="segSelect" onchange="switchSegment(this.value)"
+            style="flex:1;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-weight:700;padding:7px 10px;outline:none;">
+          </select>
+          <button onclick="deleteSegment()" title="刪除目前區塊" style="padding:7px 10px;background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;font-size:15px;cursor:pointer;flex-shrink:0;">🗑</button>
+        </div>
+
+        <!-- 新增區塊 -->
+        <div style="display:flex;gap:6px;">
+          <input id="newSegName" placeholder="輸入「1」→ 第1塊，或自訂名稱"
+            style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:7px 10px;outline:none;"
+            onkeydown="if(event.key==='Enter') addSegment()">
+          <button onclick="addSegment()" style="padding:7px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">＋新增</button>
         </div>
       </div>
 
@@ -510,6 +530,11 @@ body {
               min="0" step="0.1" inputmode="decimal"
               oninput="liveCalc()" autocomplete="off">
             <span class="unit">m</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button onclick="adjustStake(1)"  style="flex:1;padding:7px 0;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;">+1</button>
+            <button onclick="adjustStake(10)" style="flex:1;padding:7px 0;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;cursor:pointer;">+10</button>
+            <button onclick="resetStake()"   style="flex:1;padding:7px 0;background:var(--surface2);color:var(--text3);border:1.5px solid var(--border2);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">重置</button>
           </div>
         </div>
       </div>
@@ -581,6 +606,35 @@ body {
 
     <div class="export-section" style="padding: 8px 0 0;">
 
+      <!-- 記錄表格 -->
+      <div style="margin-bottom:12px;">
+        <div style="border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);">
+          <div class="table-header-row">
+            <div class="th">樁位</div>
+            <div class="th">支距</div>
+            <div class="th">寬度</div>
+            <div class="th">均寬</div>
+            <div class="th accent">面積M²</div>
+            <div class="th accent">累計M²</div>
+            <div class="th">備註</div>
+          </div>
+          <div class="data-rows" id="dataRows">
+            <div class="empty-state">
+              <div class="empty-icon">📏</div>
+              <div class="empty-text">尚無量測記錄</div>
+            </div>
+          </div>
+          <div class="total-row" id="totalRow" style="display:none">
+            <div class="total-td label" style="grid-column:1/4">合　計</div>
+            <div class="total-td"></div>
+            <div class="total-td hl" id="totalArea"></div>
+            <div class="total-td hl" id="totalCumul"></div>
+            <div class="total-td"></div>
+          </div>
+        </div>
+        <div class="swipe-hint" id="swipeHint" style="display:none">點選任一列可查看詳情或刪除</div>
+      </div>
+
       <div class="export-card">
         <div class="export-card-title">📄 報表預覽</div>
         <div class="preview-box" id="previewBox">尚無資料</div>
@@ -635,34 +689,6 @@ body {
   </div>
 </div>
 
-<!-- ════ TABLE PANEL ════ -->
-<div class="panel" id="panel-table">
-  <div class="table-section">
-    <div class="table-header-row">
-      <div class="th">樁位</div>
-      <div class="th">支距</div>
-      <div class="th">寬度</div>
-      <div class="th">均寬</div>
-      <div class="th accent">面積M²</div>
-      <div class="th accent">累計M²</div>
-      <div class="th">備註</div>
-    </div>
-    <div class="data-rows" id="dataRows">
-      <div class="empty-state">
-        <div class="empty-icon">📏</div>
-        <div class="empty-text">尚無量測記錄<br><span style="font-size:12px">前往「新增量測」開始記錄</span></div>
-      </div>
-    </div>
-    <div class="total-row" id="totalRow" style="display:none">
-      <div class="total-td label" style="grid-column:1/4">合　計</div>
-      <div class="total-td"></div>
-      <div class="total-td hl" id="totalArea"></div>
-      <div class="total-td hl" id="totalCumul"></div>
-      <div class="total-td"></div>
-    </div>
-    <div class="swipe-hint" id="swipeHint" style="display:none">點選任一列可查看詳情或刪除</div>
-  </div>
-</div>
 
 <!-- ════ MANHOLE PANEL ════ -->
 <div class="panel" id="panel-manhole">
@@ -924,7 +950,7 @@ body {
 
       <!-- 貼上區 -->
       <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:0.06em;">量測文字（貼入後自動解析）</div>
-      <textarea id="pasteInput" placeholder="和平路（廣和街至干城路）&#10;0 13.1&#10;10 12.1&#10;20 11.8&#10;30 10.2&#10;..." oninput="parsePasteText()"
+      <textarea id="pasteInput" placeholder="和平路&#10;1&#10;0 5.5&#10;15 5.5&#10;2&#10;0 4.8&#10;15 4.8&#10;（純數字單獨一行 = 區塊序號）" oninput="parsePasteText()"
         style="width:100%;min-height:160px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:14px;padding:12px;outline:none;resize:vertical;line-height:1.8;"></textarea>
 
       <!-- 解析預覽 -->
@@ -996,16 +1022,136 @@ window.onerror = function(msg, src, line) {
   return false;
 };
 
-let rows = JSON.parse(localStorage.getItem('area_rows') || '[]');
+// ── 多區塊資料結構 ──
+// freeRows: 無區塊時直接掛在路段下的記錄
+// segments = [ { name: '第1塊', rows: [...] }, ... ]
+let freeRows = [];
+let segments = [];
+let currentSegIdx = 0;
 let currentId = null;
 
-// Init
+function loadSegments() {
+  const saved = localStorage.getItem('area_segments');
+  if (saved) {
+    const data = JSON.parse(saved);
+    freeRows = data.freeRows || [];
+    segments = data.segments || [];
+  }
+  if (currentSegIdx >= segments.length) currentSegIdx = Math.max(0, segments.length - 1);
+}
+
+function saveSegments() {
+  localStorage.setItem('area_segments', JSON.stringify({ freeRows, segments }));
+}
+
+// 相容舊資料遷移
+function migrateLegacy() {
+  const old = localStorage.getItem('area_rows');
+  if (old && !localStorage.getItem('area_segments')) {
+    const oldRows = JSON.parse(old);
+    if (oldRows.length > 0) {
+      freeRows = oldRows;
+      saveSegments();
+    }
+  }
+  // 舊格式（只存 segments 陣列）
+  const saved = localStorage.getItem('area_segments');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (Array.isArray(data)) {
+        // 舊格式是純陣列
+        segments = data;
+        freeRows = [];
+        saveSegments();
+      }
+    } catch(e) {}
+  }
+}
+
+// 目前區塊的 rows（無區塊時回傳 freeRows）
+function curRows() {
+  if (!segments.length) return freeRows;
+  return segments[currentSegIdx]?.rows || [];
+}
+
+// ── 初始化 ──
+migrateLegacy();
+loadSegments();
 const today = new Date();
 document.getElementById('hDate').textContent = today.toLocaleDateString('zh-TW');
 document.getElementById('projDate').value = today.toISOString().split('T')[0];
 loadProject();
+renderSegSelect();
 renderAll();
-renderExport(); // 初始化時也更新匯出區
+renderExport();
+
+// ── 區塊管理 ──
+function renderSegSelect() {
+  const sel = document.getElementById('segSelect');
+  sel.innerHTML = '';
+  if (!segments.length) {
+    const opt = document.createElement('option');
+    opt.value = ''; opt.textContent = '（無區塊，記錄直接掛在路段下）';
+    sel.appendChild(opt);
+    return;
+  }
+  segments.forEach((s, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${s.name}（${s.rows.length}筆）`;
+    sel.appendChild(opt);
+  });
+  sel.value = currentSegIdx;
+}
+
+function switchSegment(idx) {
+  currentSegIdx = parseInt(idx);
+  document.getElementById('iStake').value = '';
+  document.getElementById('iWidth').value = '';
+  document.getElementById('iNote').value = '';
+  document.getElementById('autoDistDisplay').textContent = '—';
+  document.getElementById('autoAvgDisplay').textContent = '—';
+  document.getElementById('autoAreaDisplay').textContent = '—';
+  document.getElementById('autoCumulDisplay').style.display = 'none';
+  renderAll();
+  liveCalc();
+  renderExport();
+  toast(`已切換到「${segments[currentSegIdx].name}」`);
+}
+
+function addSegment() {
+  const nameEl = document.getElementById('newSegName');
+  const raw = nameEl.value.trim();
+  if (!raw) { toast('⚠️ 請輸入區塊名稱，例如輸入「1」產生「第1塊」'); return; }
+  // 若輸入純數字，自動轉為「第N塊」
+  const name = /^\d+$/.test(raw) ? `第${raw}塊` : raw;
+  segments.push({ name, rows: [] });
+  currentSegIdx = segments.length - 1;
+  saveSegments();
+  renderSegSelect();
+  nameEl.value = '';
+  document.getElementById('iStake').value = '';
+  document.getElementById('iWidth').value = '';
+  renderAll();
+  liveCalc();
+  renderExport();
+  toast(`✅ 已新增「${name}」`);
+}
+
+function deleteSegment() {
+  if (!segments.length) { toast('⚠️ 目前沒有區塊'); return; }
+  const name = segments[currentSegIdx].name;
+  const cnt  = segments[currentSegIdx].rows.length;
+  if (!confirm(`確定刪除「${name}」（共 ${cnt} 筆記錄）？`)) return;
+  segments.splice(currentSegIdx, 1);
+  currentSegIdx = Math.max(0, currentSegIdx - 1);
+  saveSegments();
+  renderSegSelect();
+  renderAll();
+  renderExport();
+  toast(`已刪除「${name}」`);
+}
 
 function toggleProject() {
   document.getElementById('projExpand').classList.toggle('open');
@@ -1085,10 +1231,21 @@ function switchPanel(name, el) {
   document.querySelectorAll('.sec-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + name).classList.add('active');
   el.classList.add('active');
-  if (name === 'table') renderTable();
   if (name === 'paste') initPastePanel();
   if (name === 'manhole') renderManholeTable();
   if (name === 'survey') renderSurveyList();
+}
+
+function adjustStake(delta) {
+  const el = document.getElementById('iStake');
+  const cur = parseFloat(el.value) || 0;
+  el.value = parseFloat((cur + delta).toFixed(1));
+  liveCalc();
+}
+
+function resetStake() {
+  document.getElementById('iStake').value = '';
+  liveCalc();
 }
 
 function parseStake(s) {
@@ -1098,6 +1255,7 @@ function parseStake(s) {
 }
 
 function liveCalc() {
+  const rows = curRows();
   const stakeStr = document.getElementById('iStake').value;
   const w = parseFloat(document.getElementById('iWidth').value);
   const isFirst = rows.length === 0;
@@ -1176,6 +1334,8 @@ function liveCalc() {
 }
 
 function addRow() {
+  // 無區塊 → 直接存入 freeRows
+  const rows = curRows();  // freeRows 或目前區塊的 rows
   const stakeStr = document.getElementById('iStake').value;
   const w = parseFloat(document.getElementById('iWidth').value);
   const note = document.getElementById('iNote').value.trim();
@@ -1192,9 +1352,7 @@ function addRow() {
     if (stakeVal === null) { toast('⚠️ 樁位格式不正確'); return; }
     dist = parseFloat((stakeVal - prevVal).toFixed(3));
     if (dist === 0) {
-      avgW = '';
-      area = 0;
-      cumul = last.cumul;
+      avgW = ''; area = 0; cumul = last.cumul;
     } else {
       avgW = parseFloat(((w + last.width) / 2).toFixed(2));
       area = parseFloat((dist * avgW).toFixed(2));
@@ -1207,23 +1365,28 @@ function addRow() {
   }
 
   const row = { id: Date.now(), stake: stakeStr, stakeVal: parseStake(stakeStr), dist, width: w, avgWidth: avgW, area, cumul, note };
-  rows.push(row);
-  save();
+  if (!segments.length) {
+    freeRows.push(row);
+  } else {
+    segments[currentSegIdx].rows.push(row);
+  }
+  saveSegments();
 
   document.getElementById('iStake').value = '';
   document.getElementById('iWidth').value = '';
   document.getElementById('iNote').value = '';
-
   document.getElementById('autoDistDisplay').textContent = '—';
   document.getElementById('autoAvgDisplay').textContent = '—';
   document.getElementById('autoAreaDisplay').textContent = '—';
   document.getElementById('autoCumulDisplay').style.display = 'none';
 
+  renderSegSelect();
   renderAll();
   liveCalc();
-  renderExport(); // 更新匯出區統計
+  renderExport();
 
-  if (rows.length === 1) {
+  const newRows = curRows();
+  if (newRows.length === 1) {
     toast('✅ 第一筆已記錄！輸入下一個樁位開始計算面積');
   } else if (dist === 0) {
     toast('✅ 同樁號第二寬度已記錄（面積 0，累計不變）');
@@ -1232,9 +1395,7 @@ function addRow() {
   }
 }
 
-function save() {
-  localStorage.setItem('area_rows', JSON.stringify(rows));
-}
+function save() { saveSegments(); }
 
 function renderAll() {
   updateTotals();
@@ -1242,6 +1403,7 @@ function renderAll() {
 }
 
 function updateTotals() {
+  const rows = curRows();
   const total = rows.reduce((s,r) => s + r.area, 0);
   const cumul = rows.length ? rows[rows.length-1].cumul : 0;
   document.getElementById('tCount').textContent = rows.length;
@@ -1251,14 +1413,20 @@ function updateTotals() {
 
 function renderTable() {
   const el = document.getElementById('dataRows');
-  if (rows.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div><div class="empty-text">尚無量測記錄<br><span style="font-size:12px">前往「新增量測」開始記錄</span></div></div>`;
+  const allEmpty = freeRows.length === 0 && segments.every(s => s.rows.length === 0);
+  if (allEmpty) {
+    el.innerHTML = `<div class="empty-state"><div class="empty-icon">📏</div><div class="empty-text">尚無量測記錄</div></div>`;
     document.getElementById('totalRow').style.display = 'none';
     document.getElementById('swipeHint').style.display = 'none';
     return;
   }
-  el.innerHTML = rows.map(r => `
-    <div class="data-row" onclick="openModal(${r.id})">
+
+  let html = '';
+  let grandTotal = 0;
+
+  // 無區塊的直屬記錄（不顯示標題列）
+  freeRows.forEach(r => {
+    html += `<div class="data-row" onclick="openModal(${r.id},'free')">
       <div class="td stake">${r.stake}</div>
       <div class="td">${r.dist !== '' ? r.dist : '—'}</div>
       <div class="td">${r.width}</div>
@@ -1266,20 +1434,51 @@ function renderTable() {
       <div class="td area">${r.area > 0 ? r.area.toFixed(2) : '—'}</div>
       <div class="td cumul">${r.cumul > 0 ? r.cumul.toFixed(2) : '—'}</div>
       <div class="td note">${r.note || ''}</div>
-    </div>`).join('');
-  const total = rows.reduce((s,r) => s + r.area, 0);
-  const cumul = rows.length ? rows[rows.length-1].cumul : 0;
-  document.getElementById('totalArea').textContent = total.toFixed(2);
-  document.getElementById('totalCumul').textContent = cumul.toFixed(2);
+    </div>`;
+    grandTotal += r.area;
+  });
+
+  // 各區塊記錄（有標題列）
+  segments.forEach((seg, si) => {
+    if (seg.rows.length === 0) return;
+    const isCurrent = si === currentSegIdx;
+    html += `<div style="grid-column:1/-1;background:${isCurrent?'var(--accent-light)':'var(--surface2)'};border-bottom:1.5px solid var(--border);padding:6px 10px;font-size:11px;font-weight:700;color:${isCurrent?'var(--accent)':'var(--text2)'};display:flex;justify-content:space-between;align-items:center;">
+      <span>${seg.name}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-weight:400;font-size:10px;">合計 ${seg.rows.reduce((s,r)=>s+r.area,0).toFixed(2)} M²</span>
+    </div>`;
+    seg.rows.forEach(r => {
+      html += `<div class="data-row" onclick="openModal(${r.id},${si})">
+        <div class="td stake">${r.stake}</div>
+        <div class="td">${r.dist !== '' ? r.dist : '—'}</div>
+        <div class="td">${r.width}</div>
+        <div class="td">${r.avgWidth || '—'}</div>
+        <div class="td area">${r.area > 0 ? r.area.toFixed(2) : '—'}</div>
+        <div class="td cumul">${r.cumul > 0 ? r.cumul.toFixed(2) : '—'}</div>
+        <div class="td note">${r.note || ''}</div>
+      </div>`;
+    });
+    grandTotal += seg.rows.reduce((s,r) => s+r.area, 0);
+  });
+
+  el.innerHTML = html;
+  document.getElementById('totalArea').textContent = grandTotal.toFixed(2);
+  document.getElementById('totalCumul').textContent = grandTotal.toFixed(2);
   document.getElementById('totalRow').style.display = 'grid';
   document.getElementById('swipeHint').style.display = 'block';
 }
 
-function openModal(id) {
+function openModal(id, segIdx) {
+  if (segIdx === undefined) segIdx = segments.length ? currentSegIdx : 'free';
   currentId = id;
-  const r = rows.find(x => x.id === id);
+  const isFree = segIdx === 'free';
+  const r = isFree
+    ? freeRows.find(x => x.id === id)
+    : segments[segIdx]?.rows.find(x => x.id === id);
   if (!r) return;
-  document.getElementById('modalTitle').textContent = `樁位 ${r.stake}`;
+  document.getElementById('modal').dataset.segIdx = isFree ? 'free' : segIdx;
+  document.getElementById('modalTitle').textContent = isFree
+    ? `樁位 ${r.stake}`
+    : `${segments[segIdx].name} — 樁位 ${r.stake}`;
   document.getElementById('modalBody').innerHTML = `
     <div class="detail-box"><div class="detail-box-label">量測寬度</div><div class="detail-box-val">${r.width} M</div></div>
     <div class="detail-box"><div class="detail-box-label">支距（自動）</div><div class="detail-box-val">${r.dist !== '' ? r.dist + ' M' : '第一筆'}</div></div>
@@ -1297,33 +1496,58 @@ function closeModal(e) {
 
 function deleteRow() {
   if (!confirm('確定刪除此筆記錄？')) return;
-  rows = rows.filter(r => r.id !== currentId);
-  let c = 0;
-  rows.forEach(r => { c = parseFloat((c + r.area).toFixed(2)); r.cumul = c; });
-  save(); renderAll(); liveCalc();
+  const rawIdx = document.getElementById('modal').dataset.segIdx;
+  const isFree = rawIdx === 'free';
+  if (isFree) {
+    freeRows = freeRows.filter(r => r.id !== currentId);
+    let c = 0;
+    freeRows.forEach(r => { c = parseFloat((c + r.area).toFixed(2)); r.cumul = c; });
+  } else {
+    const segIdx = parseInt(rawIdx ?? currentSegIdx);
+    const seg = segments[segIdx];
+    seg.rows = seg.rows.filter(r => r.id !== currentId);
+    let c = 0;
+    seg.rows.forEach(r => { c = parseFloat((c + r.area).toFixed(2)); r.cumul = c; });
+  }
+  saveSegments();
+  renderSegSelect();
+  renderAll();
+  liveCalc();
   renderExport();
   document.getElementById('modal').classList.remove('open');
   toast('已刪除');
 }
 
 function renderExport() {
-  const total = rows.reduce((s,r) => s + r.area, 0);
-  const widths = rows.map(r => r.width).filter(v => v !== null && v !== undefined && v !== '');
-  document.getElementById('eCount').textContent = rows.length;
+  const allRows = [...freeRows, ...segments.flatMap(s => s.rows)];
+  const total = allRows.reduce((s,r) => s + r.area, 0);
+  const widths = allRows.map(r => r.width).filter(v => v !== null && v !== undefined && v !== '');
+  document.getElementById('eCount').textContent = allRows.length;
   document.getElementById('eTotalArea').textContent = total.toFixed(2);
   document.getElementById('eMaxWidth').textContent = widths.length ? Math.max(...widths).toFixed(2) : '—';
   document.getElementById('eAvgWidth').textContent = widths.length ? (widths.reduce((a,b)=>a+b,0)/widths.length).toFixed(2) : '—';
 
-  if (!rows.length) { document.getElementById('previewBox').textContent = '尚無資料'; return; }
+  if (!allRows.length) { document.getElementById('previewBox').textContent = '尚無資料'; return; }
   const p = JSON.parse(localStorage.getItem('area_project') || '{}');
   const seg = document.getElementById('projSeg')?.value || p.seg || '';
 
   let txt = '';
   if (seg) txt += `${seg}\n`;
-  rows.forEach(r => {
+  // 無區塊直屬記錄（不加標題）
+  freeRows.forEach(r => {
     txt += `${r.stake} ${r.width}`;
     if (r.note) txt += ` (${r.note})`;
     txt += '\n';
+  });
+  // 各區塊
+  segments.forEach(s => {
+    if (!s.rows.length) return;
+    txt += `${s.name}\n`;
+    s.rows.forEach(r => {
+      txt += `${r.stake} ${r.width}`;
+      if (r.note) txt += ` (${r.note})`;
+      txt += '\n';
+    });
   });
   txt += `面積合計 ${total.toFixed(2)} M²`;
   document.getElementById('previewBox').textContent = txt;
@@ -1335,18 +1559,32 @@ function copyReport() {
   navigator.clipboard.writeText(txt).then(() => toast('✅ 已複製！可直接貼到 Line'));
 }
 
+function clearAll() {
+  if (!confirm('確定清除所有量測記錄？')) return;
+  freeRows = [];
+  segments = [];
+  currentSegIdx = 0;
+  document.getElementById('iStake').value = '';
+  saveSegments();
+  renderSegSelect();
+  renderAll();
+  liveCalc();
+  renderExport();
+  toast('已清除');
+}
+
 function downloadXLSX() {
-  if (!rows.length) { toast('⚠️ 無資料'); return; }
+  const allRows = [...freeRows, ...segments.flatMap(s => s.rows)];
+  if (!allRows.length) { toast('⚠️ 無資料'); return; }
   const p = JSON.parse(localStorage.getItem('area_project') || '{}');
-  const seg = document.getElementById('projSeg').value || p.seg || '';
+  const seg = document.getElementById('projSeg')?.value || p.seg || '';
   const dateStr = p.date || new Date().toISOString().split('T')[0];
-  const total = rows.reduce((s,r) => s + r.area, 0);
+  const grandTotal = allRows.reduce((s,r) => s + r.area, 0);
 
   const wb = XLSX.utils.book_new();
   const ws = {};
   ws['!merges'] = [];
   const R = (r,c) => XLSX.utils.encode_cell({r,c});
-
   const st = {
     title:   { font:{name:'標楷體',sz:16,bold:true},  alignment:{horizontal:'center',vertical:'center'} },
     label:   { font:{name:'標楷體',sz:12},             alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
@@ -1354,91 +1592,82 @@ function downloadXLSX() {
     valueC:  { font:{name:'標楷體',sz:12},             alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
     hdr:     { font:{name:'Times New Roman',sz:12},    alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
     hdrKai:  { font:{name:'標楷體',sz:12},             alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
+    segHdr:  { font:{name:'標楷體',sz:12,bold:false},  alignment:{horizontal:'left',  vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
     dataA:   { font:{name:'Times New Roman',sz:12},    alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
     dataN:   { font:{name:'Times New Roman',sz:12},    alignment:{horizontal:'right', vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}}, numFmt:'0.00' },
     noteRed: { font:{name:'Times New Roman',sz:12,color:{rgb:'FF0000'}}, alignment:{horizontal:'center',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
     totalL:  { font:{name:'標楷體',sz:12,bold:true},   alignment:{horizontal:'right', vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
     totalV:  { font:{name:'Times New Roman',sz:12,bold:true}, alignment:{horizontal:'right',vertical:'center'}, border:{top:{style:'thin'},bottom:{style:'thin'},left:{style:'thin'},right:{style:'thin'}} },
   };
-
-  const cell = (r, c, v, t, style) => {
-    const ref = R(r,c);
-    ws[ref] = { v, t: t||'s', s: style||{} };
-  };
+  const cell = (r, c, v, t, style) => { ws[R(r,c)] = { v, t: t||'s', s: style||{} }; };
   const merge = (r1,c1,r2,c2) => ws['!merges'].push({s:{r:r1,c:c1},e:{r:r2,c:c2}});
 
-  cell(0,0,'面積計算表','s',st.title);
-  merge(0,0,0,6);
-  cell(1,0,'工程名稱','s',st.label);
-  cell(1,1,p.name||'','s',st.value);
-  merge(1,1,1,6);
-  cell(2,0,'承包廠商','s',st.label);
-  cell(2,1,p.vendor||'','s',st.valueC);
-  merge(2,1,2,3);
-  cell(2,4,'監造單位','s',st.label);
-  cell(2,5,p.super||'','s',st.valueC);
-  merge(2,5,2,6);
-  cell(3,0,'施工地點','s',st.label);
-  cell(3,1,seg,'s',st.valueC);
-  merge(3,1,3,3);
-  cell(3,4,'施工日期','s',st.label);
-  cell(3,5,dateStr,'s',st.valueC);
-  merge(3,5,3,6);
-
+  // ── 標頭 (列 1-5) ──
+  cell(0,0,'施工前面積計算表','s',st.title); merge(0,0,0,6);
+  cell(1,0,'工程名稱','s',st.label); cell(1,1,p.name||'','s',st.value); merge(1,1,1,6);
+  cell(2,0,'承包廠商','s',st.label); cell(2,1,p.vendor||'','s',st.valueC); merge(2,1,2,3);
+  cell(2,4,'監造單位','s',st.label); cell(2,5,p.super||'','s',st.valueC); merge(2,5,2,6);
+  cell(3,0,'施工地點','s',st.label); cell(3,1,seg,'s',st.valueC); merge(3,1,3,3);
+  cell(3,4,'施工日期','s',st.label); cell(3,5,dateStr,'s',st.valueC); merge(3,5,3,6);
   ['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註'].forEach((h,c) => {
-    const s = (c===0||c===6) ? st.hdrKai : st.hdr;
-    cell(4,c,h,'s',s);
+    cell(4,c,h,'s',(c===0||c===6)?st.hdrKai:st.hdr);
   });
 
-  const DR = 5;
-  rows.forEach((r, i) => {
-    const row = DR + i;
-    const exRow = row + 1;
-    const exPrev = exRow - 1;
-    ws[R(row,0)] = { v: Number(r.stake), t:'n', z:'"0K+"000.0', s: st.dataA };
-    if (i === 0) { cell(row, 1, '', 's', st.dataN); }
-    else { ws[R(row,1)] = { f: `A${exRow}-A${exPrev}`, t:'n', z:'0.00', s: st.dataN }; }
-    ws[R(row,2)] = { v: Number(r.width), t:'n', z:'0.00', s: st.dataN };
-    if (i === 0) { cell(row, 3, '', 's', st.dataN); }
-    else { ws[R(row,3)] = { f: `(C${exRow}+C${exPrev})/2`, t:'n', z:'0.00', s: st.dataN }; }
-    if (i === 0) { cell(row, 4, '', 's', st.dataN); }
-    else { ws[R(row,4)] = { f: `ROUND(B${exRow}*D${exRow},2)`, t:'n', z:'0.00', s: st.dataN }; }
-    if (i === 0)      { cell(row, 5, '', 's', st.dataN); }
-    else if (i === 1) { ws[R(row,5)] = { f: `E${exRow}`, t:'n', z:'0.00', s: st.dataN }; }
-    else              { ws[R(row,5)] = { f: `F${exPrev}+E${exRow}`, t:'n', z:'0.00', s: st.dataN }; }
-    const noteStyle = r.note ? st.noteRed : st.hdrKai;
-    cell(row, 6, r.note||'', 's', noteStyle);
+  // ── 資料列 ──
+  let curRow = 5;
+  const allERows = [];
+
+  // 輔助：寫入一組 rows（無標題列版本，用於 freeRows）
+  function writeRows(rowsArr) {
+    rowsArr.forEach((r, i) => {
+      const exRow = curRow + 1;
+      const exPrev = exRow - 1;
+      ws[R(curRow,0)] = { v: Number(r.stake), t:'n', z:'"0K+"000.0', s: st.dataA };
+      if (i === 0) { cell(curRow,1,'','s',st.dataN); }
+      else { ws[R(curRow,1)] = { f:`A${exRow}-A${exPrev}`, t:'n', z:'0.00', s:st.dataN }; }
+      ws[R(curRow,2)] = { v: Number(r.width), t:'n', z:'0.00', s:st.dataN };
+      if (i === 0) { cell(curRow,3,'','s',st.dataN); }
+      else { ws[R(curRow,3)] = { f:`(C${exRow}+C${exPrev})/2`, t:'n', z:'0.00', s:st.dataN }; }
+      if (i === 0) { cell(curRow,4,'','s',st.dataN); }
+      else { ws[R(curRow,4)] = { f:`ROUND(B${exRow}*D${exRow},2)`, t:'n', z:'0.00', s:st.dataN }; }
+      if (i === 0) { cell(curRow,5,'','s',st.dataN); }
+      else if (i === 1) { ws[R(curRow,5)] = { f:`E${exRow}`, t:'n', z:'0.00', s:st.dataN }; }
+      else { ws[R(curRow,5)] = { f:`F${exPrev}+E${exRow}`, t:'n', z:'0.00', s:st.dataN }; }
+      if (i > 0) allERows.push(exRow);
+      cell(curRow,6, r.note||'','s', r.note ? st.noteRed : st.hdrKai);
+      curRow++;
+    });
+  }
+
+  // 無區塊直屬記錄（不加名稱列）
+  if (freeRows.length) writeRows(freeRows);
+
+  // 各區塊（有名稱列）
+  segments.forEach(s => {
+    if (!s.rows.length) return;
+    cell(curRow, 0, s.name, 's', st.segHdr);
+    merge(curRow, 0, curRow, 6);
+    curRow++;
+    writeRows(s.rows);
   });
 
-  const TR = DR + rows.length;
-  const firstDataRow = DR + 2;
-  const lastDataRow  = DR + rows.length;
-  cell(TR, 0, '合計總面積', 's', st.totalL);
-  merge(TR, 0, TR, 4);
-  ws[R(TR,5)] = { f: `SUM(E${firstDataRow}:E${lastDataRow})`, t:'n', s: st.totalV };
-  cell(TR, 6, 'M2', 's', st.totalV);
+  // ── 合計列 ──
+  cell(curRow,0,'合計總面積','s',st.totalL); merge(curRow,0,curRow,4);
+  const sumFormula = allERows.length ? allERows.map(n=>`E${n}`).join('+') : '0';
+  ws[R(curRow,5)] = { f: sumFormula, t:'n', z:'0.00', s:st.totalV };
+  cell(curRow,6,'M2','s',st.totalV);
 
   ws['!cols'] = [{wch:12},{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13}];
-  ws['!rows'] = [{hpt:21*0.75*1.33}];
-  ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:TR,c:6}});
-
+  ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:curRow,c:6}});
   XLSX.utils.book_append_sheet(wb, ws, '面積計算表');
   const fname = `面積計算表_${(seg||'路段').replace(/\s/g,'')}_${dateStr}.xlsx`;
   XLSX.writeFile(wb, fname);
   toast('✅ Excel 已下載！');
 }
 
-function clearAll() {
-  if (!confirm('確定清除本路段所有量測記錄？')) return;
-  rows = [];
-  document.getElementById('iStake').value = '';
-  save(); renderAll(); liveCalc();
-  renderExport();
-  toast('已清除');
-}
-
 async function generateFormattedExcel() {
-  if (!rows.length) { toast('⚠️ 無資料可產生'); return; }
+  const allRows = [...freeRows, ...segments.flatMap(s => s.rows)];
+  if (!allRows.length) { toast('⚠️ 無資料可產生'); return; }
 
   const btn = document.getElementById('fmtBtn');
   const status = document.getElementById('fmtStatus');
@@ -1533,53 +1762,72 @@ async function generateFormattedExcel() {
 
     setMsg('🔧 填入量測資料...', 65);
 
-    rows.forEach((r, i) => {
-      const rowNum = 6 + i;
-      ws.getRow(rowNum).height = 16;
-      const dr = ws.getRow(rowNum);
-      const prevRow = rowNum - 1;
+    let curRowNum = 6;
+    const allERowNums = [];
 
-      const ca = dr.getCell(1);
-      ca.value = Number(r.stake);
-      ca.numFmt = '"0K+"000.0';
-      styleCell(ca, { font:{ name:'Times New Roman', size:12 } });
+    // 共用：寫一組 rows（不加區塊標題）
+    function writeExRows(rowsArr) {
+      rowsArr.forEach((r, i) => {
+        const rowNum = curRowNum;
+        ws.getRow(rowNum).height = 16;
+        const dr = ws.getRow(rowNum);
+        const prevRow = rowNum - 1;
 
-      const cb = dr.getCell(2);
-      cb.value = i === 0 ? null : { formula: `A${rowNum}-A${prevRow}` };
-      cb.numFmt = '0.00';
-      styleCell(cb, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+        const ca = dr.getCell(1);
+        ca.value = Number(r.stake); ca.numFmt = '"0K+"000.0';
+        styleCell(ca, { font:{ name:'Times New Roman', size:12 } });
 
-      const cc = dr.getCell(3); cc.value = Number(r.width);
-      cc.numFmt = '0.00';
-      styleCell(cc, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+        const cb = dr.getCell(2);
+        cb.value = i === 0 ? null : { formula: `A${rowNum}-A${prevRow}` };
+        cb.numFmt = '0.00';
+        styleCell(cb, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
 
-      const cd = dr.getCell(4);
-      cd.value = i === 0 ? null : { formula: `(C${rowNum}+C${prevRow})/2` };
-      cd.numFmt = '0.00';
-      styleCell(cd, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+        const cc = dr.getCell(3); cc.value = Number(r.width); cc.numFmt = '0.00';
+        styleCell(cc, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
 
-      const ce = dr.getCell(5);
-      ce.value = i === 0 ? null : { formula: `ROUND(B${rowNum}*D${rowNum},2)` };
-      ce.numFmt = '0.00';
-      styleCell(ce, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+        const cd = dr.getCell(4);
+        cd.value = i === 0 ? null : { formula: `(C${rowNum}+C${prevRow})/2` };
+        cd.numFmt = '0.00';
+        styleCell(cd, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
 
-      const cf = dr.getCell(6);
-      if (i === 0)      cf.value = null;
-      else if (i === 1) cf.value = { formula: `E${rowNum}` };
-      else              cf.value = { formula: `F${prevRow}+E${rowNum}` };
-      cf.numFmt = '0.00';
-      styleCell(cf, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+        const ce = dr.getCell(5);
+        ce.value = i === 0 ? null : { formula: `ROUND(B${rowNum}*D${rowNum},2)` };
+        ce.numFmt = '0.00';
+        styleCell(ce, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
 
-      const cg = dr.getCell(7); cg.value = r.note || '';
-      const noteFont = r.note
-        ? { name:'Times New Roman', size:12, color:{ argb:'FFFF0000' } }
-        : { name:'Times New Roman', size:12 };
-      styleCell(cg, { font: noteFont });
+        const cf = dr.getCell(6);
+        if (i === 0)      cf.value = null;
+        else if (i === 1) cf.value = { formula: `E${rowNum}` };
+        else              cf.value = { formula: `F${prevRow}+E${rowNum}` };
+        cf.numFmt = '0.00';
+        styleCell(cf, { font:{ name:'Times New Roman', size:12 }, align:{ horizontal:'right', vertical:'middle' } });
+
+        const cg = dr.getCell(7); cg.value = r.note || '';
+        styleCell(cg, { font: r.note ? { name:'Times New Roman', size:12, color:{ argb:'FFFF0000' } } : { name:'Times New Roman', size:12 } });
+
+        if (i > 0) allERowNums.push(rowNum);
+        curRowNum++;
+      });
+    }
+
+    // 無區塊直屬記錄（不加名稱列）
+    if (freeRows.length) writeExRows(freeRows);
+
+    // 各區塊（有名稱列）
+    segments.forEach(s => {
+      if (!s.rows.length) return;
+      const segRow = ws.getRow(curRowNum); segRow.height = 16;
+      const segCell = segRow.getCell(1);
+      segCell.value = s.name;
+      styleCell(segCell, { font:{ name:'標楷體', size:12 }, align:{ horizontal:'left', vertical:'middle' } });
+      for (let c = 2; c <= 7; c++) styleCell(segRow.getCell(c), { font:{ name:'標楷體', size:12 }, align:{ horizontal:'left', vertical:'middle' } });
+      ws.mergeCells(`A${curRowNum}:G${curRowNum}`);
+      curRowNum++;
+      writeExRows(s.rows);
     });
 
-    const TR = 6 + rows.length;
-    const firstData = 7;
-    const lastData  = TR - 1;
+    // ── 合計列 ──
+    const TR = curRowNum;
     ws.getRow(TR).height = 18;
     const trRow = ws.getRow(TR);
     const ta = trRow.getCell(1);
@@ -1589,7 +1837,8 @@ async function generateFormattedExcel() {
     for (let c = 2; c <= 5; c++) styleCell(trRow.getCell(c), { font:{ name:'標楷體', size:12, bold:true } });
 
     const tf = trRow.getCell(6);
-    tf.value = { formula: `SUM(E${firstData}:E${lastData})` };
+    const sumFml = allERowNums.length ? allERowNums.map(n=>`E${n}`).join('+') : '0';
+    tf.value = { formula: sumFml };
     tf.numFmt = '0.00';
     styleCell(tf, { font:{ name:'Times New Roman', size:12, bold:true }, align:{ horizontal:'right', vertical:'middle' } });
 
@@ -1667,103 +1916,132 @@ function parsePasteText() {
 
   if (!raw) return;
 
-  const lines = raw.split('\n').map(l => l.trim()).filter(l => l);
+  // 前處理：若整個輸入只有1行，嘗試把「第N塊」拆成換行
+  // 例：「和平路 第1塊 0 5.5 15 5.5 第2塊 ...」→ 正常多行格式
+  let processed = raw;
+  if (!raw.includes('\n')) {
+    processed = raw.replace(/(第\s*\d+\s*[塊块區区段])/g, '\n$1\n').replace(/^\n/, '');
+  }
+
+  const lines = processed.split(/[\n]+/).map(l => l.trim()).filter(l => l);
   let seg = '';
-  const dataLines = [];
 
-  const firstNumTest = /^[\d.]+\s+[\d.]+/.test(lines[0]);
-  if (!firstNumTest && lines.length > 0) {
+  // 支援的區塊標頭格式：純數字（1）或中文（第1塊、第1區塊）或「塊1」「block1」
+  const isDataLine = l => /^[\d.]+\s+[\d.]+/.test(l);
+  const blockMatch = l => {
+    if (/^\d+$/.test(l)) return `第${l}塊`;           // 1  →  第1塊
+    const m1 = l.match(/^第\s*(\d+)\s*[塊块區区段]$/); // 第1塊 第1块 第1區
+    if (m1) return `第${m1[1]}塊`;
+    const m2 = l.match(/^[塊块區区段]\s*(\d+)$/);      // 塊1 區1
+    if (m2) return `第${m2[1]}塊`;
+    return null;
+  };
+
+  // 第一行若不是量測資料且不是區塊標頭，視為路段名稱
+  let startIdx = 0;
+  if (!isDataLine(lines[0]) && !blockMatch(lines[0]) && lines.length > 0) {
     seg = lines[0];
-    dataLines.push(...lines.slice(1));
-  } else {
-    dataLines.push(...lines);
+    startIdx = 1;
   }
 
-  if (dataLines.length === 0) {
-    errorDiv.textContent = '⚠️ 未偵測到量測資料，請確認格式（每行：樁位 寬度）';
-    errorDiv.style.display = 'block';
-    return;
-  }
+  // 解析成 segments: [{name, rows:[{stake,width,note}]}]
+  const pasteSegs = [];
+  let curSeg = null;
 
-  const parsed = [];
-  const errors = [];
-  dataLines.forEach((line, i) => {
-    const parts = line.split(/[\s,\t]+/).filter(Boolean);
-    if (parts.length < 2) { errors.push(`第 ${i+1} 行格式錯誤：「${line}」`); return; }
-    const stake = parseFloat(parts[0]);
-    const width = parseFloat(parts[1]);
-    const note = parts.slice(2).join(' ');
-    if (isNaN(stake) || isNaN(width)) { errors.push(`第 ${i+1} 行數字無法解析：「${line}」`); return; }
-    parsed.push({ stake, width, note });
-  });
-
-  if (errors.length > 0 && parsed.length === 0) {
-    errorDiv.textContent = errors.join('\n');
-    errorDiv.style.display = 'block';
-    return;
-  }
-
-  let cumul = 0;
-  pasteRows = parsed.map((r, i) => {
-    let dist = '', avgWidth = '', area = 0;
-    if (i > 0) {
-      dist = parseFloat((r.stake - parsed[i-1].stake).toFixed(3));
-      avgWidth = parseFloat(((r.width + parsed[i-1].width) / 2).toFixed(2));
-      area = parseFloat((dist * avgWidth).toFixed(2));
-      cumul = parseFloat((cumul + area).toFixed(2));
+  for (let i = startIdx; i < lines.length; i++) {
+    const line = lines[i];
+    const bName = blockMatch(line);
+    if (bName) {
+      // 區塊標頭
+      curSeg = { name: bName, rows: [] };
+      pasteSegs.push(curSeg);
+    } else if (isDataLine(line)) {
+      // 量測資料
+      if (!curSeg) { curSeg = { name: '', rows: [] }; pasteSegs.push(curSeg); }
+      const parts = line.split(/[\s,\t]+/).filter(Boolean);
+      const stake = parseFloat(parts[0]);
+      const width = parseFloat(parts[1]);
+      const note = parts.slice(2).join(' ');
+      if (!isNaN(stake) && !isNaN(width)) curSeg.rows.push({ stake, width, note });
     }
-    return { ...r, dist, avgWidth, area, cumul };
+    // 其他行忽略
+  }
+
+  const allDataRows = pasteSegs.flatMap(s => s.rows);
+  if (!allDataRows.length) {
+    errorDiv.textContent = '⚠️ 未偵測到量測資料，請確認格式';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  // 每個區塊內各自計算支距/面積/累計，累計跨區塊連續累加
+  let globalCumul = 0;
+  pasteSegs.forEach(s => {
+    s.rows = s.rows.map((r, i) => {
+      let dist = '', avgWidth = '', area = 0;
+      if (i > 0) {
+        dist = parseFloat((r.stake - s.rows[i-1].stake).toFixed(3));
+        avgWidth = parseFloat(((r.width + s.rows[i-1].width) / 2).toFixed(2));
+        area = parseFloat((dist * avgWidth).toFixed(2));
+        globalCumul = parseFloat((globalCumul + area).toFixed(2));
+      }
+      return { ...r, dist, avgWidth, area, cumul: globalCumul };
+    });
   });
 
-  const total = pasteRows.reduce((s, r) => s + r.area, 0);
+  pasteRows = pasteSegs; // 存為 segments 陣列
+  pasteRows._seg = seg;
+
+  const total = pasteSegs.flatMap(s=>s.rows).reduce((a,r)=>a+r.area,0);
+  const hasBlocks = pasteSegs.some(s => s.name !== '');
 
   document.getElementById('parseSeg').textContent = seg || '（未填）';
-  document.getElementById('parseCount').textContent = pasteRows.length + ' 筆';
+  document.getElementById('parseCount').textContent = allDataRows.length + ' 筆' + (hasBlocks ? `（${pasteSegs.filter(s=>s.name).length} 個區塊）` : '');
   document.getElementById('parseTotal').textContent = total.toFixed(2) + ' M²';
 
+  // 預覽表格
   const tableDiv = document.getElementById('parseTable');
-  tableDiv.innerHTML = `
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:'JetBrains Mono',monospace;">
-        <tr style="background:#1A1D27;color:#fff;">
-          <th style="padding:5px 6px;text-align:center;">樁位</th>
-          <th style="padding:5px 6px;text-align:right;">支距</th>
-          <th style="padding:5px 6px;text-align:right;">寬度</th>
-          <th style="padding:5px 6px;text-align:right;">均寬</th>
-          <th style="padding:5px 6px;text-align:right;color:#F5A623;">面積</th>
-          <th style="padding:5px 6px;text-align:right;color:#F5A623;">累計</th>
-        </tr>
-        ${pasteRows.map((r,i) => `
-          <tr style="background:${i%2===0?'#fff':'#F7F8FA'};">
-            <td style="padding:4px 6px;text-align:center;">${toStakeFormat(r.stake)}</td>
-            <td style="padding:4px 6px;text-align:right;">${r.dist!==''?r.dist:'—'}</td>
-            <td style="padding:4px 6px;text-align:right;">${r.width}</td>
-            <td style="padding:4px 6px;text-align:right;">${r.avgWidth!==''?r.avgWidth:'—'}</td>
-            <td style="padding:4px 6px;text-align:right;font-weight:700;">${r.area>0?r.area.toFixed(2):'—'}</td>
-            <td style="padding:4px 6px;text-align:right;font-weight:700;color:#E67E22;">${r.cumul>0?r.cumul.toFixed(2):'—'}</td>
-          </tr>`).join('')}
-        <tr style="background:#1A1D27;color:#fff;">
-          <td colspan="4" style="padding:6px;text-align:right;font-weight:700;">合計</td>
-          <td colspan="2" style="padding:6px;text-align:right;font-weight:700;color:#F5A623;">${total.toFixed(2)} M²</td>
-        </tr>
-      </table>
-    </div>`;
+  let tableHtml = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;font-family:'JetBrains Mono',monospace;">
+    <tr style="background:#1A1D27;color:#fff;">
+      <th style="padding:5px 6px;text-align:center;">樁位</th>
+      <th style="padding:5px 6px;text-align:right;">支距</th>
+      <th style="padding:5px 6px;text-align:right;">寬度</th>
+      <th style="padding:5px 6px;text-align:right;">均寬</th>
+      <th style="padding:5px 6px;text-align:right;color:#F5A623;">面積</th>
+      <th style="padding:5px 6px;text-align:right;color:#F5A623;">累計</th>
+    </tr>`;
+
+  pasteSegs.forEach((s, si) => {
+    if (s.name) {
+      tableHtml += `<tr style="background:#EBF5FB;"><td colspan="6" style="padding:5px 8px;font-weight:700;color:#2980B9;">${s.name}</td></tr>`;
+    }
+    s.rows.forEach((r, i) => {
+      const rowBg = i%2===0?'#fff':'#F7F8FA';
+      tableHtml += `<tr style="background:${rowBg};">
+        <td style="padding:4px 6px;text-align:center;">${toStakeFormat(r.stake)}</td>
+        <td style="padding:4px 6px;text-align:right;">${r.dist!==''?r.dist:'—'}</td>
+        <td style="padding:4px 6px;text-align:right;">${r.width}</td>
+        <td style="padding:4px 6px;text-align:right;">${r.avgWidth!==''?r.avgWidth:'—'}</td>
+        <td style="padding:4px 6px;text-align:right;font-weight:700;">${r.area>0?r.area.toFixed(2):'—'}</td>
+        <td style="padding:4px 6px;text-align:right;font-weight:700;color:#E67E22;">${r.cumul>0?r.cumul.toFixed(2):'—'}</td>
+      </tr>`;
+    });
+  });
+
+  tableHtml += `<tr style="background:#1A1D27;color:#fff;">
+    <td colspan="4" style="padding:6px;text-align:right;font-weight:700;">合計</td>
+    <td colspan="2" style="padding:6px;text-align:right;font-weight:700;color:#F5A623;">${total.toFixed(2)} M²</td>
+  </tr></table></div>`;
+  tableDiv.innerHTML = tableHtml;
 
   preview.style.display = 'block';
   btns.style.display = 'flex';
-
-  if (errors.length > 0) {
-    errorDiv.textContent = '⚠️ 部分行解析失敗（已略過）：\n' + errors.join('\n');
-    errorDiv.style.display = 'block';
-  }
-
-  pasteRows._seg = seg;
 }
 
 function downloadPasteXLSX(type) {
   if (!pasteRows.length) { toast('⚠️ 尚未解析到資料'); return; }
 
-  const seg = pasteRows._seg || document.getElementById('projSeg')?.value || '';
+  const seg = pasteRows._seg || '';
   const p = {
     name:   document.getElementById('pasteProjectName').value,
     vendor: document.getElementById('pasteVendor').value,
@@ -1780,46 +2058,55 @@ function downloadPasteXLSX(type) {
     ws['!merges'] = [];
     const R = (r,c) => XLSX.utils.encode_cell({r,c});
 
-    const headers = [
-      ['面積計算表','','','','','',''],
-      ['工程名稱', p.name||'','','','','',''],
-      ['承包廠商', p.vendor||'','','監造單位', p.super||'',''],
-      ['施工地點', seg,'','','施工日期', dateStr,''],
-      ['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註'],
-    ];
-    headers.forEach((row, ri) => {
-      row.forEach((v, ci) => { ws[R(ri,ci)] = {v, t:'s'}; });
+    // 標頭
+    [['面積計算表','','','','','',''],
+     ['工程名稱',p.name||'','','','','',''],
+     ['承包廠商',p.vendor||'','','監造單位',p.super||'',''],
+     ['施工地點',seg,'','','施工日期',dateStr,''],
+     ['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註']
+    ].forEach((row,ri) => row.forEach((v,ci) => { ws[R(ri,ci)]={v,t:'s'}; }));
+
+    let curRow = 5;
+    const allERows = [];
+
+    pasteRows.forEach(s => {
+      // 區塊名稱列
+      if (s.name) {
+        ws[R(curRow,0)] = {v: s.name, t:'s'};
+        for(let c=1;c<=6;c++) ws[R(curRow,c)]={v:'',t:'s'};
+        ws['!merges'].push({s:{r:curRow,c:0},e:{r:curRow,c:6}});
+        curRow++;
+      }
+      s.rows.forEach((r, i) => {
+        const exRow = curRow + 1;
+        const exPrev = exRow - 1;
+        ws[R(curRow,0)] = {v: Number(r.stake), t:'n', z:'"0K+"000.0'};
+        ws[R(curRow,1)] = i===0 ? {v:'',t:'s'} : {f:`A${exRow}-A${exPrev}`,t:'n',z:'0.00'};
+        ws[R(curRow,2)] = {v: Number(r.width), t:'n', z:'0.00'};
+        ws[R(curRow,3)] = i===0 ? {v:'',t:'s'} : {f:`(C${exRow}+C${exPrev})/2`,t:'n',z:'0.00'};
+        ws[R(curRow,4)] = i===0 ? {v:'',t:'s'} : {f:`ROUND(B${exRow}*D${exRow},2)`,t:'n',z:'0.00'};
+        if      (i===0) ws[R(curRow,5)]={v:'',t:'s'};
+        else if (i===1) ws[R(curRow,5)]={f:`E${exRow}`,t:'n',z:'0.00'};
+        else            ws[R(curRow,5)]={f:`F${exPrev}+E${exRow}`,t:'n',z:'0.00'};
+        ws[R(curRow,6)] = {v: r.note||'', t:'s'};
+        if (i>0) allERows.push(exRow);
+        curRow++;
+      });
     });
 
-    const DR = 5;
-    pasteRows.forEach((r, i) => {
-      const row = DR + i;
-      const exRow = row + 1;
-      const exPrev = exRow - 1;
-      ws[R(row,0)] = {v: Number(r.stake), t:'n', z:'"0K+"000.0'};
-      ws[R(row,1)] = i === 0 ? {v:'', t:'s'} : {f:`A${exRow}-A${exPrev}`, t:'n', z:'0.00'};
-      ws[R(row,2)] = {v: Number(r.width), t:'n', z:'0.00'};
-      ws[R(row,3)] = i === 0 ? {v:'', t:'s'} : {f:`(C${exRow}+C${exPrev})/2`, t:'n', z:'0.00'};
-      ws[R(row,4)] = i === 0 ? {v:'', t:'s'} : {f:`ROUND(B${exRow}*D${exRow},2)`, t:'n', z:'0.00'};
-      if      (i === 0) ws[R(row,5)] = {v:'', t:'s'};
-      else if (i === 1) ws[R(row,5)] = {f:`E${exRow}`, t:'n', z:'0.00'};
-      else              ws[R(row,5)] = {f:`F${exPrev}+E${exRow}`, t:'n', z:'0.00'};
-      ws[R(row,6)] = {v: r.note||'', t:'s'};
-    });
-
-    const TR = DR + pasteRows.length;
-    ws[R(TR,0)] = {v:'合計總面積', t:'s'};
-    ws[R(TR,5)] = {f:`SUM(E${DR+2}:E${TR})`, t:'n', z:'0.00'};
-    ws[R(TR,6)] = {v:'M2', t:'s'};
-
-    ws['!merges'] = [
+    // 合計列
+    ws['!merges'].unshift(
       {s:{r:0,c:0},e:{r:0,c:6}},{s:{r:1,c:1},e:{r:1,c:6}},
       {s:{r:2,c:1},e:{r:2,c:3}},{s:{r:2,c:5},e:{r:2,c:6}},
       {s:{r:3,c:1},e:{r:3,c:3}},{s:{r:3,c:5},e:{r:3,c:6}},
-      {s:{r:TR,c:0},e:{r:TR,c:4}},
-    ];
-    ws['!cols'] = [{wch:14},{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13}];
-    ws['!ref'] = XLSX.utils.encode_range({s:{r:0,c:0}, e:{r:TR,c:6}});
+    );
+    ws[R(curRow,0)]={v:'合計總面積',t:'s'};
+    ws['!merges'].push({s:{r:curRow,c:0},e:{r:curRow,c:4}});
+    ws[R(curRow,5)]={f: allERows.length ? allERows.map(n=>`E${n}`).join('+') : '0', t:'n',z:'0.00'};
+    ws[R(curRow,6)]={v:'M2',t:'s'};
+
+    ws['!cols']=[{wch:14},{wch:14},{wch:13},{wch:13},{wch:13},{wch:13},{wch:13}];
+    ws['!ref']=XLSX.utils.encode_range({s:{r:0,c:0},e:{r:curRow,c:6}});
     XLSX.utils.book_append_sheet(wb, ws, '面積計算表');
     XLSX.writeFile(wb, fname);
     toast('✅ 簡易 Excel 已下載！');
@@ -1843,19 +2130,20 @@ async function downloadPasteFormatted(p, seg, dateStr, fname) {
     const ws = wb.addWorksheet('面積計算表');
     ws.columns = [{width:12},{width:14},{width:13},{width:13},{width:13},{width:13},{width:13}];
 
-    const thin = {style:'thin'};
-    const border = {top:thin,bottom:thin,left:thin,right:thin};
+    const thin={style:'thin'};
+    const border={top:thin,bottom:thin,left:thin,right:thin};
     function sc(cell, font={}, align={}, hasBorder=true) {
       cell.font = {name:'標楷體',size:12,...font};
       cell.alignment = {horizontal:'center',vertical:'middle',...align};
       if (hasBorder) cell.border = border;
     }
 
-    ws.getRow(1).height = 28;
-    const t1 = ws.getRow(1).getCell(1); t1.value='面積計算表';
+    // 標頭列
+    ws.getRow(1).height=28;
+    const t1=ws.getRow(1).getCell(1); t1.value='面積計算表';
     sc(t1,{name:'標楷體',size:16,bold:true},{},false); ws.mergeCells('A1:G1');
 
-    ws.getRow(2).height = 18;
+    ws.getRow(2).height=18;
     ws.getRow(2).getCell(1).value='工程名稱'; sc(ws.getRow(2).getCell(1));
     ws.getRow(2).getCell(2).value=p.name||''; sc(ws.getRow(2).getCell(2),{},{horizontal:'left',vertical:'middle'});
     ws.mergeCells('B2:G2'); for(let c=3;c<=7;c++) sc(ws.getRow(2).getCell(c));
@@ -1878,68 +2166,67 @@ async function downloadPasteFormatted(p, seg, dateStr, fname) {
 
     ws.getRow(5).height=18;
     ['樁位','支距','寬度(M)','平均寬度(M)','面積(M2)','累計面積(M2)','備註'].forEach((h,i) => {
-      const c = ws.getRow(5).getCell(i+1);
-      c.value = h;
+      const c=ws.getRow(5).getCell(i+1); c.value=h;
       sc(c,{name:(i===0||i===6)?'標楷體':'Times New Roman',size:12});
     });
 
-    pasteRows.forEach((r,i) => {
-      const rn = 6+i; ws.getRow(rn).height=16;
-      const dr = ws.getRow(rn);
-      const prev = rn - 1;
+    let curRowNum = 6;
+    const allERowNums = [];
 
-      const ca=dr.getCell(1);
-      ca.value = Number(r.stake);
-      ca.numFmt = '"0K+"000.0';
-      sc(ca,{name:'Times New Roman',size:12});
+    pasteRows.forEach(s => {
+      // 區塊名稱列
+      if (s.name) {
+        ws.getRow(curRowNum).height=16;
+        const sc2=ws.getRow(curRowNum).getCell(1); sc2.value=s.name;
+        sc(sc2,{name:'標楷體',size:12},{horizontal:'left',vertical:'middle'});
+        for(let c=2;c<=7;c++) sc(ws.getRow(curRowNum).getCell(c),{name:'標楷體',size:12},{horizontal:'left',vertical:'middle'});
+        ws.mergeCells(`A${curRowNum}:G${curRowNum}`);
+        curRowNum++;
+      }
 
-      const cb=dr.getCell(2);
-      cb.value = i===0 ? null : {formula:`A${rn}-A${prev}`};
-      cb.numFmt = '0.00';
-      sc(cb,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+      s.rows.forEach((r, i) => {
+        const rn=curRowNum; ws.getRow(rn).height=16;
+        const dr=ws.getRow(rn); const prev=rn-1;
 
-      const cc=dr.getCell(3); cc.value=Number(r.width);
-      cc.numFmt = '0.00';
-      sc(cc,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
-
-      const cd=dr.getCell(4);
-      cd.value = i===0 ? null : {formula:`(C${rn}+C${prev})/2`};
-      cd.numFmt = '0.00';
-      sc(cd,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
-
-      const ce=dr.getCell(5);
-      ce.value = i===0 ? null : {formula:`ROUND(B${rn}*D${rn},2)`};
-      ce.numFmt = '0.00';
-      sc(ce,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
-
-      const cf=dr.getCell(6);
-      if      (i===0) cf.value = null;
-      else if (i===1) cf.value = {formula:`E${rn}`};
-      else            cf.value = {formula:`F${prev}+E${rn}`};
-      cf.numFmt = '0.00';
-      sc(cf,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
-
-      const cg=dr.getCell(7); cg.value=r.note||'';
-      sc(cg,{name:'Times New Roman',size:12,...(r.note?{color:{argb:'FFFF0000'}}:{})});
+        const ca=dr.getCell(1); ca.value=Number(r.stake); ca.numFmt='"0K+"000.0';
+        sc(ca,{name:'Times New Roman',size:12});
+        const cb=dr.getCell(2); cb.value=i===0?null:{formula:`A${rn}-A${prev}`}; cb.numFmt='0.00';
+        sc(cb,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+        const cc=dr.getCell(3); cc.value=Number(r.width); cc.numFmt='0.00';
+        sc(cc,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+        const cd=dr.getCell(4); cd.value=i===0?null:{formula:`(C${rn}+C${prev})/2`}; cd.numFmt='0.00';
+        sc(cd,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+        const ce=dr.getCell(5); ce.value=i===0?null:{formula:`ROUND(B${rn}*D${rn},2)`}; ce.numFmt='0.00';
+        sc(ce,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+        const cf=dr.getCell(6);
+        if(i===0) cf.value=null;
+        else if(i===1) cf.value={formula:`E${rn}`};
+        else cf.value={formula:`F${prev}+E${rn}`};
+        cf.numFmt='0.00';
+        sc(cf,{name:'Times New Roman',size:12},{horizontal:'right',vertical:'middle'});
+        const cg=dr.getCell(7); cg.value=r.note||'';
+        sc(cg,{name:'Times New Roman',size:12,...(r.note?{color:{argb:'FFFF0000'}}:{})});
+        if(i>0) allERowNums.push(rn);
+        curRowNum++;
+      });
     });
 
-    const TR = 6+pasteRows.length; ws.getRow(TR).height=18;
+    // 合計列
+    const TR=curRowNum; ws.getRow(TR).height=18;
     const ta=ws.getRow(TR).getCell(1); ta.value='合計總面積';
     sc(ta,{name:'標楷體',size:12,bold:true},{horizontal:'right',vertical:'middle'});
     ws.mergeCells(`A${TR}:E${TR}`); for(let c=2;c<=5;c++) sc(ws.getRow(TR).getCell(c),{name:'標楷體',size:12,bold:true});
-
     const tf=ws.getRow(TR).getCell(6);
-    tf.value = {formula:`SUM(E7:E${TR-1})`};
-    tf.numFmt = '0.00';
+    const sumFml = allERowNums.length ? allERowNums.map(n=>`E${n}`).join('+') : '0';
+    tf.value={formula:sumFml}; tf.numFmt='0.00';
     sc(tf,{name:'Times New Roman',size:12,bold:true},{horizontal:'right',vertical:'middle'});
-
     const tg=ws.getRow(TR).getCell(7); tg.value='M2';
     sc(tg,{name:'Times New Roman',size:12,bold:true});
 
-    const buf = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href=url; a.download=fname; a.click();
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=fname; a.click();
     URL.revokeObjectURL(url);
     toast('✅ 公司格式 Excel 已下載！');
   } catch(err) {
