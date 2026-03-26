@@ -1291,8 +1291,10 @@ function liveCalc() {
   const prevW = rows[rows.length - 1].width;
 
   if (stakeVal !== null && prevStakeVal !== null) {
-    const dist = parseFloat((stakeVal - prevStakeVal).toFixed(3));
-    if (dist === 0) {
+    const rawDist = parseFloat((stakeVal - prevStakeVal).toFixed(3));
+    const dist = Math.abs(rawDist);
+    const isReverse = rawDist < 0;
+    if (rawDist === 0) {
       distDisplay.textContent = '0（同樁號）';
       distDisplay.style.color = 'var(--text3)';
       avgDisplay.textContent = '—';
@@ -1300,9 +1302,9 @@ function liveCalc() {
       areaDisplay.style.color = 'var(--text3)';
       cumulVal.textContent = rows[rows.length-1].cumul.toFixed(2) + ' M²（不變）';
       cumulRow.style.display = 'flex';
-    } else if (dist > 0) {
-      distDisplay.textContent = dist.toFixed(2);
-      distDisplay.style.color = 'var(--blue)';
+    } else {
+      distDisplay.textContent = dist.toFixed(2) + (isReverse ? '（反向）' : '');
+      distDisplay.style.color = isReverse ? 'var(--accent)' : 'var(--blue)';
       if (!isNaN(w) && w >= 0) {
         const avgW = parseFloat(((w + prevW) / 2).toFixed(2));
         const area = parseFloat((dist * avgW).toFixed(2));
@@ -1318,12 +1320,6 @@ function liveCalc() {
         areaDisplay.style.color = 'var(--text3)';
         cumulRow.style.display = 'none';
       }
-    } else {
-      distDisplay.textContent = dist.toFixed(2) + '（樁號倒退）';
-      distDisplay.style.color = 'var(--red)';
-      avgDisplay.textContent = '—';
-      areaDisplay.textContent = '—';
-      cumulRow.style.display = 'none';
     }
   } else {
     distDisplay.textContent = '—';
@@ -1350,8 +1346,9 @@ function addRow() {
     const stakeVal = parseStake(stakeStr);
     const prevVal = parseStake(last.stake);
     if (stakeVal === null) { toast('⚠️ 樁位格式不正確'); return; }
-    dist = parseFloat((stakeVal - prevVal).toFixed(3));
-    if (dist === 0) {
+    const rawDist = parseFloat((stakeVal - prevVal).toFixed(3));
+    dist = parseFloat(Math.abs(rawDist).toFixed(3));
+    if (rawDist === 0) {
       avgW = ''; area = 0; cumul = last.cumul;
     } else {
       avgW = parseFloat(((w + last.width) / 2).toFixed(2));
