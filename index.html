@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>面積計算表</title>
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2782,21 +2783,4 @@ setTimeout(() => t.classList.remove(‘show’), 2400);
 }
 </script>
 
-<link rel="apple-touch-icon" id="appIcon" sizes="180x180">
-<script>
-window.addEventListener('load',function(){
-  var c=document.createElement('canvas'); c.width=c.height=180;
-  var x=c.getContext('2d');
-  function rr(a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.lineTo(a+w-r,b);x.quadraticCurveTo(a+w,b,a+w,b+r);x.lineTo(a+w,b+h-r);x.quadraticCurveTo(a+w,b+h,a+w-r,b+h);x.lineTo(a+r,b+h);x.quadraticCurveTo(a,b+h,a,b+h-r);x.lineTo(a,b+r);x.quadraticCurveTo(a,b,a+r,b);x.closePath();}
-  function ln(x1,y1,x2,y2){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke();}
-  var g=x.createLinearGradient(0,0,0,180);g.addColorStop(0,'#232946');g.addColorStop(1,'#121629');
-  x.fillStyle=g;rr(0,0,180,180,36);x.fill();
-  var g2=x.createLinearGradient(0,0,0,180);g2.addColorStop(0,'#3D4263');g2.addColorStop(1,'#2A2E50');
-  x.fillStyle=g2;x.beginPath();x.moveTo(55,28);x.lineTo(125,28);x.lineTo(152,155);x.lineTo(28,155);x.closePath();x.fill();
-  x.strokeStyle='rgba(255,255,255,0.35)';x.lineWidth=2.5;x.lineCap='round';ln(55,28,28,155);ln(125,28,152,155);
-  x.strokeStyle='#F0932B';x.lineWidth=6;ln(90,36,90,62);ln(90,76,90,102);ln(90,116,90,147);
-  x.strokeStyle='#2ECC71';x.lineWidth=4;ln(34,120,146,120);ln(34,111,34,129);ln(146,111,146,129);
-  document.getElementById('appIcon').href=c.toDataURL('image/png');
-});
-</script>
 </body>
