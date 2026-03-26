@@ -5,65 +5,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>面積計算表</title>
-<link rel="apple-touch-icon" id="appIcon" sizes="180x180">
-<script>
-(function(){
-  var c = document.createElement('canvas');
-  c.width = c.height = 180;
-  var ctx = c.getContext('2d');
-
-// 背景
-var bg = ctx.createLinearGradient(0,0,0,180);
-bg.addColorStop(0,’#232946’); bg.addColorStop(1,’#121629’);
-ctx.fillStyle = bg;
-roundRect(ctx,0,0,180,180,36); ctx.fill();
-
-// 路面梯形
-var road = ctx.createLinearGradient(0,0,0,180);
-road.addColorStop(0,’#3D4263’); road.addColorStop(1,’#2A2E50’);
-ctx.fillStyle = road;
-ctx.beginPath();
-ctx.moveTo(55,28); ctx.lineTo(125,28);
-ctx.lineTo(152,155); ctx.lineTo(28,155);
-ctx.closePath(); ctx.fill();
-
-// 路面邊線
-ctx.strokeStyle = ‘rgba(255,255,255,0.35)’;
-ctx.lineWidth = 2.5; ctx.lineCap = ‘round’;
-line(ctx,55,28,28,155); line(ctx,125,28,152,155);
-
-// 橘色虛線
-ctx.strokeStyle = ‘#F0932B’; ctx.lineWidth = 6;
-line(ctx,90,36,90,62); line(ctx,90,76,90,102); line(ctx,90,116,90,147);
-
-// 綠色量測線
-ctx.strokeStyle = ‘#2ECC71’; ctx.lineWidth = 4;
-line(ctx,34,120,146,120);
-line(ctx,34,111,34,129);
-line(ctx,146,111,146,129);
-
-var url = c.toDataURL(‘image/png’);
-var el = document.getElementById(‘appIcon’);
-if(el) el.href = url;
-// 也更新 favicon
-var fi = document.createElement(‘link’);
-fi.rel=‘icon’; fi.type=‘image/png’; fi.href=url;
-document.head.appendChild(fi);
-
-function line(ctx,x1,y1,x2,y2){
-ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-}
-function roundRect(ctx,x,y,w,h,r){
-ctx.beginPath();
-ctx.moveTo(x+r,y);
-ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
-ctx.closePath();
-}
-})();
-</script>
 
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -2841,5 +2782,21 @@ setTimeout(() => t.classList.remove(‘show’), 2400);
 }
 </script>
 
+<link rel="apple-touch-icon" id="appIcon" sizes="180x180">
+<script>
+window.addEventListener('load',function(){
+  var c=document.createElement('canvas'); c.width=c.height=180;
+  var x=c.getContext('2d');
+  function rr(a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.lineTo(a+w-r,b);x.quadraticCurveTo(a+w,b,a+w,b+r);x.lineTo(a+w,b+h-r);x.quadraticCurveTo(a+w,b+h,a+w-r,b+h);x.lineTo(a+r,b+h);x.quadraticCurveTo(a,b+h,a,b+h-r);x.lineTo(a,b+r);x.quadraticCurveTo(a,b,a+r,b);x.closePath();}
+  function ln(x1,y1,x2,y2){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke();}
+  var g=x.createLinearGradient(0,0,0,180);g.addColorStop(0,'#232946');g.addColorStop(1,'#121629');
+  x.fillStyle=g;rr(0,0,180,180,36);x.fill();
+  var g2=x.createLinearGradient(0,0,0,180);g2.addColorStop(0,'#3D4263');g2.addColorStop(1,'#2A2E50');
+  x.fillStyle=g2;x.beginPath();x.moveTo(55,28);x.lineTo(125,28);x.lineTo(152,155);x.lineTo(28,155);x.closePath();x.fill();
+  x.strokeStyle='rgba(255,255,255,0.35)';x.lineWidth=2.5;x.lineCap='round';ln(55,28,28,155);ln(125,28,152,155);
+  x.strokeStyle='#F0932B';x.lineWidth=6;ln(90,36,90,62);ln(90,76,90,102);ln(90,116,90,147);
+  x.strokeStyle='#2ECC71';x.lineWidth=4;ln(34,120,146,120);ln(34,111,34,129);ln(146,111,146,129);
+  document.getElementById('appIcon').href=c.toDataURL('image/png');
+});
+</script>
 </body>
-</html>
