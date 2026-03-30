@@ -2,8 +2,12 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="面積計算">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>面積計算表</title>
+<title>🚧面積計算表</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -640,6 +644,10 @@ body {
         <div class="preview-box" id="previewBox">尚無資料</div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="copyReport()">📋 複製</button>
+          <button class="btn" onclick="shareReport()" style="background:#06C755;color:#fff;font-weight:700;border:none;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            分享到 LINE
+          </button>
         </div>
       </div>
 
@@ -1559,6 +1567,21 @@ function copyReport() {
   if (txt === '尚無資料') { toast('⚠️ 無資料可複製'); return; }
   navigator.clipboard.writeText(txt).then(() => toast('✅ 已複製！可直接貼到 Line'));
 }
+async function shareReport() {
+  const txt = document.getElementById('previewBox').textContent;
+  if (txt === '尚無資料') { toast('⚠️ 無資料可分享'); return; }
+  if (navigator.share) {
+    try {
+      await navigator.share({ text: txt });
+    } catch(e) {
+      if (e.name !== 'AbortError') {
+        navigator.clipboard.writeText(txt).then(() => toast('✅ 已複製！請手動貼到 LINE'));
+      }
+    }
+  } else {
+    navigator.clipboard.writeText(txt).then(() => toast('✅ 已複製！請手動貼到 LINE'));
+  }
+}
 
 function clearAll() {
   if (!confirm('確定清除所有量測記錄？')) return;
@@ -1566,6 +1589,7 @@ function clearAll() {
   segments = [];
   currentSegIdx = 0;
   document.getElementById('iStake').value = '';
+  document.getElementById('projSeg').value = '';
   saveSegments();
   renderSegSelect();
   renderAll();
