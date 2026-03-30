@@ -1528,10 +1528,15 @@ function renderExport() {
   const p = JSON.parse(localStorage.getItem('area_project') || '{}');
   const seg = document.getElementById('projSeg')?.value || p.seg || '';
 
+  // 排序輔助：每個 rows 陣列依樁位數值從小到大排序（支援反向輸入）
+  function sortedRows(rows) {
+    return [...rows].sort((a, b) => parseFloat(a.stake) - parseFloat(b.stake));
+  }
+
   let txt = '';
   if (seg) txt += `${seg}\n`;
   // 無區塊直屬記錄（不加標題）
-  freeRows.forEach(r => {
+  sortedRows(freeRows).forEach(r => {
     txt += `${r.stake} ${r.width}`;
     if (r.note) txt += ` (${r.note})`;
     txt += '\n';
@@ -1540,7 +1545,7 @@ function renderExport() {
   segments.forEach(s => {
     if (!s.rows.length) return;
     txt += `${s.name}\n`;
-    s.rows.forEach(r => {
+    sortedRows(s.rows).forEach(r => {
       txt += `${r.stake} ${r.width}`;
       if (r.note) txt += ` (${r.note})`;
       txt += '\n';
@@ -1971,9 +1976,10 @@ function parsePasteText() {
     return;
   }
 
-  // 每個區塊內各自計算支距/面積/累計，累計跨區塊連續累加
+  // 每個區塊先依樁位排序（支援反向輸入），再計算支距/面積/累計
   let globalCumul = 0;
   pasteSegs.forEach(s => {
+    s.rows.sort((a, b) => a.stake - b.stake); // 從小到大排序
     s.rows = s.rows.map((r, i) => {
       let dist = '', avgWidth = '', area = 0;
       if (i > 0) {
