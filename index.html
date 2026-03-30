@@ -1957,7 +1957,7 @@ function parsePasteText() {
   let seg = '';
 
   // 判斷是否為量測資料行（以數字開頭，後面跟空格+數字）
-  const isDataLine = l => /^[\d.]+\s+[\d.]+/.test(l);
+  const isDataLine = l => /^[\d.]+[\s\/][\d.]+/.test(l);
 
   // 判斷是否為「長*寬 備註」格式（如「32*4 重慶路139巷口」「20*3.5 館前東路至...」）
   // 也支援帶編號前綴被剝除後的剩餘部分
@@ -2067,7 +2067,7 @@ function parsePasteText() {
           curSeg.rows.push({ stake: lxw.length, width: lxw.width, note: '' });
         } else if (isDataLine(rest)) {
           // 普通兩點資料（如「第12塊 0 3.5」）
-          const parts = rest.split(/[\s,\t]+/).filter(Boolean);
+          const parts = rest.split(/[\s,\t\/]+/).filter(Boolean);
           const stake = parseFloat(parts[0]);
           const width = parseFloat(parts[1]);
           const note = parts.slice(2).join(' ');
@@ -2092,7 +2092,7 @@ function parsePasteText() {
     } else if (isDataLine(line)) {
       // ── 一般兩點量測資料 ──
       if (!curSeg) { curSeg = { name: '', rows: [], type: 'normal' }; pasteSegs.push(curSeg); }
-      const parts = line.split(/[\s,\t]+/).filter(Boolean);
+      const parts = line.split(/[\s,\t\/]+/).filter(Boolean);
       const stake = parseFloat(parts[0]);
       const width = parseFloat(parts[1]);
       const note = parts.slice(2).join(' ');
