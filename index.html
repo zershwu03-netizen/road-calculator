@@ -640,10 +640,6 @@ body {
         <div class="preview-box" id="previewBox">尚無資料</div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="copyReport()">📋 複製</button>
-          <button class="btn" id="shareReportBtn" onclick="shareReport()" style="background:#06C755;color:#fff;font-weight:700;border:none;display:flex;align-items:center;justify-content:center;gap:6px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            分享到 LINE
-          </button>
         </div>
       </div>
 
@@ -1373,7 +1369,6 @@ function addRow() {
   }
   saveSegments();
 
-  document.getElementById('iStake').value = '';
   document.getElementById('iWidth').value = '';
   document.getElementById('iNote').value = '';
   document.getElementById('autoDistDisplay').textContent = '—';
@@ -1563,22 +1558,6 @@ function copyReport() {
   const txt = document.getElementById('previewBox').textContent;
   if (txt === '尚無資料') { toast('⚠️ 無資料可複製'); return; }
   navigator.clipboard.writeText(txt).then(() => toast('✅ 已複製！可直接貼到 Line'));
-}
-
-async function shareReport() {
-  const txt = document.getElementById('previewBox').textContent;
-  if (txt === '尚無資料') { toast('⚠️ 無資料可分享'); return; }
-  if (navigator.share) {
-    try {
-      await navigator.share({ text: txt });
-    } catch(e) {
-      if (e.name !== 'AbortError') {
-        navigator.clipboard.writeText(txt).then(() => toast('✅ 已複製！請手動貼到 LINE'));
-      }
-    }
-  } else {
-    navigator.clipboard.writeText(txt).then(() => toast('✅ 已複製！請手動貼到 LINE'));
-  }
 }
 
 function clearAll() {
