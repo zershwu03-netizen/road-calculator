@@ -1918,8 +1918,13 @@ function parsePasteText() {
 
   if (!raw) return;
 
-  // 前處理：若整個輸入只有1行，嘗試把「第N塊」拆成換行
-  // 例：「和平路 第1塊 0 5.5 15 5.5 第2塊 ...」→ 正常多行格式
+  // 圓圈數字對照表 ①②③...⑳ 及帶括號 (1)(2)...
+  const circledDigitMap = {
+    '①':1,'②':2,'③':3,'④':4,'⑤':5,'⑥':6,'⑦':7,'⑧':8,'⑨':9,'⑩':10,
+    '⑪':11,'⑫':12,'⑬':13,'⑭':14,'⑮':15,'⑯':16,'⑰':17,'⑱':18,'⑲':19,'⑳':20
+  };
+
+  // 前處理：換行前先把圓圈數字、第N塊標頭拆開
   let processed = raw;
   if (!raw.includes('\n')) {
     processed = raw.replace(/(第\s*\d+\s*[塊块區区段])/g, '\n$1\n').replace(/^\n/, '');
@@ -1928,45 +1933,153 @@ function parsePasteText() {
   const lines = processed.split(/[\n]+/).map(l => l.trim()).filter(l => l);
   let seg = '';
 
-  // 支援的區塊標頭格式：純數字（1）或中文（第1塊、第1區塊）或「塊1」「block1」
+  // 判斷是否為量測資料行（以數字開頭，後面跟空格+數字）
   const isDataLine = l => /^[\d.]+\s+[\d.]+/.test(l);
+
+  // 判斷是否為「長*寬 備註」格式（如「32*4 重慶路139巷口」「20*3.5 館前東路至...」）
+  // 也支援帶編號前綴被剝除後的剩餘部分
+  const lxwMatch = l => {
+    const m = l.match(/^([\d.]+)\s*[*×xX]\s*([\d.]+)(?:\s+(.*))?$/);
+    if (!m) return null;
+    const length = parseFloat(m[1]);
+    const width  = parseFloat(m[2]);
+    const note   = (m[3] || '').trim();
+    if (isNaN(length) || isNaN(width)) return null;
+    return { length, width, note };
+  };
+
+  // 區塊標頭辨識：支援圓圈數字①②、純數字1、第N塊、第N塊+首筆資料同行
   const blockMatch = l => {
-    if (/^\d+$/.test(l)) return `第${l}塊`;           // 1  →  第1塊
-    const m1 = l.match(/^第\s*(\d+)\s*[塊块區区段]$/); // 第1塊 第1块 第1區
-    if (m1) return `第${m1[1]}塊`;
-    const m2 = l.match(/^[塊块區区段]\s*(\d+)$/);      // 塊1 區1
+    // 圓圈數字 ①②...⑳（可能後面接資料，如「① 0 6.5」→ 回傳名稱，剩餘部分另外處理）
+    for (const [ch, n] of Object.entries(circledDigitMap)) {
+      if (l.startsWith(ch)) return `第${n}塊`;
+    }
+    // 純數字（獨立一行，無任何其他字元）
+    if (/^\d+$/.test(l)) return `第${l}塊`;
+    // 第N塊 / 第N块 / 第N區（可能後面接資料）
+    const m1 = l.match(/^(第\s*\d+\s*[塊块區区段])/);
+    if (m1) {
+      const num = m1[1].match(/\d+/)[0];
+      return `第${num}塊`;
+    }
+    // 塊N 區N
+    const m2 = l.match(/^[塊块區区段]\s*(\d+)$/);
     if (m2) return `第${m2[1]}塊`;
+    // 數字加點（13. 12. 11. ...）：點後面必須緊接空格或長*寬格式，避免誤判路段名稱
+    // 如「13. 20*3.5 備註」或「12. 」，但不包含「219巷」「273巷4弄」等路段名
+    const m3 = l.match(/^(\d+)\.(\s|$)/);
+    if (m3) return `第${m3[1]}塊`;
     return null;
   };
 
-  // 第一行若不是量測資料且不是區塊標頭，視為路段名稱
-  let startIdx = 0;
-  if (!isDataLine(lines[0]) && !blockMatch(lines[0]) && lines.length > 0) {
+  // 區塊標頭後面有沒有跟著資料（同一行）
+  // 例：「第12塊 0 3.5」或「① 0 6.5」
+  const blockSuffix = l => {
+    // 圓圈數字後面的資料
+    for (const ch of Object.keys(circledDigitMap)) {
+      if (l.startsWith(ch)) {
+        const rest = l.slice(ch.length).trim();
+        return isDataLine(rest) ? rest : null;
+      }
+    }
+    // 第N塊後面的資料
+    const m = l.match(/^第\s*\d+\s*[塊块區区段]\s+(.+)/);
+    if (m && isDataLine(m[1])) return m[1];
+    return null;
+  };
+
+  // 偵測格式類型：
+  // A. 「編號格式」：有圓圈數字/第N塊/數字加點 → 第一行是整體路段名稱，其餘是編號區塊
+  // B. 「路段格式」：純路段名稱換行 → 每個文字行都是獨立路段
+  const hasNumberedBlocks = lines.some((l, i) => {
+    if (i === 0) return false; // 第一行不算
+    return !!blockMatch(l);
+  });
+
+  // 若有編號區塊：第一行視為整體標題（不進入解析）
+  // 若無編號區塊：所有文字行都是路段名稱
+  let loopStart = 0;
+  if (hasNumberedBlocks && lines.length > 0 && !isDataLine(lines[0]) && !blockMatch(lines[0])) {
     seg = lines[0];
-    startIdx = 1;
+    loopStart = 1;
   }
 
   // 解析成 segments: [{name, rows:[{stake,width,note}]}]
   const pasteSegs = [];
   let curSeg = null;
 
-  for (let i = startIdx; i < lines.length; i++) {
+  for (let i = loopStart; i < lines.length; i++) {
     const line = lines[i];
     const bName = blockMatch(line);
+
     if (bName) {
-      // 區塊標頭
-      curSeg = { name: bName, rows: [] };
+      // ── 有編號的區塊標頭（①②、第N塊、純數字、13.等） ──
+      curSeg = { name: bName, rows: [], type: 'normal' };
       pasteSegs.push(curSeg);
+
+      // 標頭後面剩餘的部分
+      let rest = '';
+      // 圓圈數字
+      for (const ch of Object.keys(circledDigitMap)) {
+        if (line.startsWith(ch)) { rest = line.slice(ch.length).trim(); break; }
+      }
+      // 第N塊
+      if (!rest) {
+        const m = line.match(/^第\s*\d+\s*[塊块區区段]\s*(.*)/);
+        if (m) rest = m[1].trim();
+      }
+      // 數字加點（13. 12. 等）
+      if (!rest) {
+        const m = line.match(/^\d+\.\s*(.*)/);
+        if (m) rest = m[1].trim();
+      }
+
+      if (rest) {
+        // 優先判斷長*寬格式
+        const lxw = lxwMatch(rest);
+        if (lxw) {
+          // 轉成兩點：0 width 和 length width
+          curSeg.type = 'lxw';
+          curSeg.rows.push({ stake: 0,          width: lxw.width, note: lxw.note });
+          curSeg.rows.push({ stake: lxw.length, width: lxw.width, note: '' });
+        } else if (isDataLine(rest)) {
+          // 普通兩點資料（如「第12塊 0 3.5」）
+          const parts = rest.split(/[\s,\t]+/).filter(Boolean);
+          const stake = parseFloat(parts[0]);
+          const width = parseFloat(parts[1]);
+          const note = parts.slice(2).join(' ');
+          if (!isNaN(stake) && !isNaN(width)) curSeg.rows.push({ stake, width, note });
+        } else {
+          // 純文字備註（如「①重慶路245巷至223巷」→ 備註附加到區塊名稱）
+          curSeg.name = curSeg.name + ' ' + rest;
+        }
+      }
+
+    } else if (lxwMatch(line)) {
+      // ── 長*寬格式（在標頭下一行，或無編號直接一行） ──
+      if (!curSeg) { curSeg = { name: '', rows: [], type: 'lxw' }; pasteSegs.push(curSeg); }
+      // 若 curSeg 有名稱但還沒資料（標頭剛建立），直接設為 lxw 類型
+      if (curSeg.rows.length === 0) {
+        curSeg.type = 'lxw';
+      }
+      const lxw = lxwMatch(line);
+      curSeg.rows.push({ stake: 0,          width: lxw.width, note: lxw.note });
+      curSeg.rows.push({ stake: lxw.length, width: lxw.width, note: '' });
+
     } else if (isDataLine(line)) {
-      // 量測資料
-      if (!curSeg) { curSeg = { name: '', rows: [] }; pasteSegs.push(curSeg); }
+      // ── 一般兩點量測資料 ──
+      if (!curSeg) { curSeg = { name: '', rows: [], type: 'normal' }; pasteSegs.push(curSeg); }
       const parts = line.split(/[\s,\t]+/).filter(Boolean);
       const stake = parseFloat(parts[0]);
       const width = parseFloat(parts[1]);
       const note = parts.slice(2).join(' ');
       if (!isNaN(stake) && !isNaN(width)) curSeg.rows.push({ stake, width, note });
+
+    } else if (line.length > 0) {
+      // ── 非數字開頭文字 → 路段名稱，切換新區塊 ──
+      curSeg = { name: line, rows: [], type: 'normal' };
+      pasteSegs.push(curSeg);
     }
-    // 其他行忽略
   }
 
   const allDataRows = pasteSegs.flatMap(s => s.rows);
@@ -1976,30 +2089,56 @@ function parsePasteText() {
     return;
   }
 
-  // 每個區塊先依樁位排序（支援反向輸入），再計算支距/面積/累計
+  // 排序 pasteSegs：把「第N塊」的 N 提取出來，從小到大排列
+  // 讓第1塊在最上面、第13塊在最下面
+  pasteSegs.sort((a, b) => {
+    const numA = parseInt((a.name || '').match(/\d+/) || [9999]);
+    const numB = parseInt((b.name || '').match(/\d+/) || [9999]);
+    return numA - numB;
+  });
+
+  // 每個區塊計算支距/面積/累計
+  // lxw 區塊：每個區塊兩筆（0 和 length），面積 = length * width
+  // normal 區塊：依樁位排序後計算
   let globalCumul = 0;
   pasteSegs.forEach(s => {
-    s.rows.sort((a, b) => a.stake - b.stake); // 從小到大排序
-    s.rows = s.rows.map((r, i) => {
-      let dist = '', avgWidth = '', area = 0;
-      if (i > 0) {
-        dist = parseFloat((r.stake - s.rows[i-1].stake).toFixed(3));
-        avgWidth = parseFloat(((r.width + s.rows[i-1].width) / 2).toFixed(2));
-        area = parseFloat((dist * avgWidth).toFixed(2));
+    if (s.type === 'lxw') {
+      // 每兩筆為一組（0, length），各自計算面積
+      const processed = [];
+      for (let i = 0; i < s.rows.length; i += 2) {
+        const r0 = s.rows[i];
+        const r1 = s.rows[i+1];
+        if (!r1) break;
+        const dist = parseFloat((r1.stake - r0.stake).toFixed(3));
+        const area = parseFloat((dist * r0.width).toFixed(2));
         globalCumul = parseFloat((globalCumul + area).toFixed(2));
+        processed.push({ ...r0, dist: '', avgWidth: r0.width, area: 0, cumul: globalCumul - area });
+        processed.push({ ...r1, dist, avgWidth: r1.width, area, cumul: globalCumul });
       }
-      return { ...r, dist, avgWidth, area, cumul: globalCumul };
-    });
+      s.rows = processed;
+    } else {
+      s.rows.sort((a, b) => a.stake - b.stake);
+      s.rows = s.rows.map((r, i) => {
+        let dist = '', avgWidth = '', area = 0;
+        if (i > 0) {
+          dist = parseFloat((r.stake - s.rows[i-1].stake).toFixed(3));
+          avgWidth = parseFloat(((r.width + s.rows[i-1].width) / 2).toFixed(2));
+          area = parseFloat((dist * avgWidth).toFixed(2));
+          globalCumul = parseFloat((globalCumul + area).toFixed(2));
+        }
+        return { ...r, dist, avgWidth, area, cumul: globalCumul };
+      });
+    }
   });
 
   pasteRows = pasteSegs; // 存為 segments 陣列
-  pasteRows._seg = seg;
+  pasteRows._seg = seg; // 整體路段名（編號格式才有）
 
   const total = pasteSegs.flatMap(s=>s.rows).reduce((a,r)=>a+r.area,0);
-  const hasBlocks = pasteSegs.some(s => s.name !== '');
+  const segCount = pasteSegs.filter(s=>s.name).length;
 
-  document.getElementById('parseSeg').textContent = seg || '（未填）';
-  document.getElementById('parseCount').textContent = allDataRows.length + ' 筆' + (hasBlocks ? `（${pasteSegs.filter(s=>s.name).length} 個區塊）` : '');
+  document.getElementById('parseSeg').textContent = seg || (segCount > 1 ? `${segCount} 個路段` : (pasteSegs[0]?.name || '（未填）'));
+  document.getElementById('parseCount').textContent = allDataRows.length + ' 筆' + (segCount > 0 ? `（${segCount} 個路段）` : '');
   document.getElementById('parseTotal').textContent = total.toFixed(2) + ' M²';
 
   // 預覽表格
@@ -2020,14 +2159,21 @@ function parsePasteText() {
     }
     s.rows.forEach((r, i) => {
       const rowBg = i%2===0?'#fff':'#F7F8FA';
-      tableHtml += `<tr style="background:${rowBg};">
-        <td style="padding:4px 6px;text-align:center;">${toStakeFormat(r.stake)}</td>
+      // lxw 格式：每兩筆一組，第一筆淡色（起點），第二筆顯示面積
+      const isLxwStart = s.type === 'lxw' && i % 2 === 0;
+      const isLxwEnd   = s.type === 'lxw' && i % 2 === 1;
+      tableHtml += `<tr style="background:${isLxwStart?'#FEF9F0':rowBg};">
+        <td style="padding:4px 6px;text-align:center;${isLxwStart?'color:#aaa;':''}">${toStakeFormat(r.stake)}</td>
         <td style="padding:4px 6px;text-align:right;">${r.dist!==''?r.dist:'—'}</td>
         <td style="padding:4px 6px;text-align:right;">${r.width}</td>
         <td style="padding:4px 6px;text-align:right;">${r.avgWidth!==''?r.avgWidth:'—'}</td>
         <td style="padding:4px 6px;text-align:right;font-weight:700;">${r.area>0?r.area.toFixed(2):'—'}</td>
         <td style="padding:4px 6px;text-align:right;font-weight:700;color:#E67E22;">${r.cumul>0?r.cumul.toFixed(2):'—'}</td>
       </tr>`;
+      // lxw 格式：第二筆後顯示備註（若有）
+      if (isLxwEnd && s.rows[i-1]?.note) {
+        tableHtml += `<tr style="background:#FEF3E8;"><td colspan="6" style="padding:3px 8px;font-size:10px;color:#E67E22;">📌 ${s.rows[i-1].note}</td></tr>`;
+      }
     });
   });
 
