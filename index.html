@@ -457,6 +457,16 @@ body {
     </div>
 
   </div>
+
+  <!-- JSON 備份/還原 -->
+  <div style="margin-top:12px;padding-top:12px;border-top:1.5px dashed var(--border2);">
+    <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.08em;margin-bottom:8px;">💾 資料備份 / 還原</div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="exportBackup()" style="flex:1;padding:9px 8px;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.3);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">⬇ 匯出備份</button>
+      <button onclick="document.getElementById('importFileInput').click()" style="flex:1;padding:9px 8px;background:var(--green-light);color:var(--green);border:1.5px solid rgba(39,174,96,0.3);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">⬆ 匯入還原</button>
+      <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importBackup(event)">
+    </div>
+  </div>
 </div>
 
 <!-- LIVE TOTALS -->
@@ -513,6 +523,8 @@ body {
           <select id="segSelect" onchange="switchSegment(this.value)"
             style="flex:1;background:var(--surface);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:13px;font-weight:700;padding:7px 10px;outline:none;">
           </select>
+          <button onclick="moveSegment(-1)" title="上移區塊" style="padding:7px 9px;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0;">▲</button>
+          <button onclick="moveSegment(1)"  title="下移區塊" style="padding:7px 9px;background:var(--blue-light);color:var(--blue);border:1.5px solid rgba(41,128,185,0.35);border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0;">▼</button>
           <button onclick="deleteSegment()" title="刪除目前區塊" style="padding:7px 10px;background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;font-size:15px;cursor:pointer;flex-shrink:0;">🗑</button>
         </div>
 
@@ -758,23 +770,23 @@ body {
       </div>
 
       <!-- 管線單位 -->
-      <div class="irow">
-        <div class="ifield">
-          <label>管線單位</label>
-          <div class="combo-wrap">
-            <select id="mhUnit" class="combo-select" style="font-size:15px;padding:10px 36px 10px 10px;">
-              <option value="">請選擇...</option>
-              <option value="台電">台電</option>
-              <option value="中華電信">中華電信</option>
-              <option value="瓦斯">瓦斯</option>
-              <option value="制水閥">制水閥</option>
-              <option value="汙水">汙水</option>
-              <option value="雨水">雨水</option>
-              <option value="消防">消防</option>
-              <option value="數位天空">數位天空</option>
-              <option value="其他">其他</option>
-            </select>
-            <span class="combo-arrow">▼</span>
+      <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:10px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:0.08em;">管線單位</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;" id="mhUnitGrid">
+          <label class="sv-check-label"><input type="checkbox" value="台電"    onchange="mhLiveCalc()"><span>台電</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="中華電信" onchange="mhLiveCalc()"><span>中華電信</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="瓦斯"    onchange="mhLiveCalc()"><span>瓦斯</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="制水閥"  onchange="mhLiveCalc()"><span>制水閥</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="汙水"    onchange="mhLiveCalc()"><span>汙水</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="雨水"    onchange="mhLiveCalc()"><span>雨水</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="消防"    onchange="mhLiveCalc()"><span>消防</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="數位天空" onchange="mhLiveCalc()"><span>數位天空</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="格柵"    onchange="mhLiveCalc()"><span>格柵</span></label>
+          <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;">
+            <input type="checkbox" id="mhOtherCheck" onchange="mhToggleOther()" style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;">
+            <span style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;">其他：</span>
+            <input type="text" id="mhOtherText" placeholder="請填入單位名稱" disabled
+              style="flex:1;background:transparent;border:none;outline:none;font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--text);opacity:0.4;">
           </div>
         </div>
       </div>
@@ -877,6 +889,7 @@ body {
           <label class="sv-check-label"><input type="checkbox" value="雨水" onchange="svUpdatePreview()"><span>雨水</span></label>
           <label class="sv-check-label"><input type="checkbox" value="消防" onchange="svUpdatePreview()"><span>消防</span></label>
           <label class="sv-check-label"><input type="checkbox" value="數位天空" onchange="svUpdatePreview()"><span>數位天空</span></label>
+          <label class="sv-check-label"><input type="checkbox" value="格柵"    onchange="svUpdatePreview()"><span>格柵</span></label>
           <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;">
             <input type="checkbox" id="svOtherCheck" onchange="svToggleOther();svUpdatePreview();" style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer;flex-shrink:0;">
             <span style="font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;">其他：</span>
@@ -891,6 +904,21 @@ body {
         <div style="font-size:10px;font-weight:700;color:var(--green);margin-bottom:4px;">預覽</div>
         <div><b>地點：</b><span id="svPreviewLoc"></span></div>
         <div><b>單位：</b><span id="svPreviewUnits"></span></div>
+      </div>
+
+      <!-- 照片 -->
+      <div class="irow" style="margin-bottom:10px;">
+        <div class="ifield">
+          <label>照片 <span style="color:var(--text3);font-size:10px;font-weight:400">（選填，可拍照或選取）</span></label>
+          <div id="svPhotoWrap" style="display:flex;flex-direction:column;gap:6px;">
+            <label style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--surface2);border:1.5px dashed var(--border2);border-radius:8px;padding:12px;cursor:pointer;font-size:13px;font-weight:700;color:var(--blue);">
+              📷 拍照 / 選取照片
+              <input type="file" id="svPhotoInput" accept="image/*" capture="environment" style="display:none" onchange="svPreviewPhoto(event)">
+            </label>
+            <img id="svPhotoPreview" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1.5px solid var(--border);">
+            <button id="svPhotoClear" onclick="svClearPhoto()" style="display:none;padding:6px;background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">✕ 移除照片</button>
+          </div>
+        </div>
       </div>
 
       <button class="btn-add" onclick="addSurveyRow()">✅ 確認加入記錄</button>
@@ -1472,17 +1500,24 @@ function renderTable() {
 }
 
 function openModal(id, segIdx) {
-  if (segIdx === undefined) segIdx = segments.length ? currentSegIdx : 'free';
   currentId = id;
-  const isFree = segIdx === 'free';
-  const r = isFree
-    ? freeRows.find(x => x.id === id)
-    : segments[segIdx]?.rows.find(x => x.id === id);
+  // 以 id 重新找正確位置，避免排序後 index 錯位
+  let isFree = false;
+  let resolvedIdx = null;
+  let r = freeRows.find(x => x.id === id);
+  if (r) {
+    isFree = true;
+  } else {
+    for (let i = 0; i < segments.length; i++) {
+      const found = segments[i].rows.find(x => x.id === id);
+      if (found) { r = found; resolvedIdx = i; break; }
+    }
+  }
   if (!r) return;
-  document.getElementById('modal').dataset.segIdx = isFree ? 'free' : segIdx;
+  document.getElementById('modal').dataset.segIdx = isFree ? 'free' : resolvedIdx;
   document.getElementById('modalTitle').textContent = isFree
     ? `樁位 ${r.stake}`
-    : `${segments[segIdx].name} — 樁位 ${r.stake}`;
+    : `${segments[resolvedIdx].name} — 樁位 ${r.stake}`;
   document.getElementById('modalBody').innerHTML = `
     <div class="detail-box"><div class="detail-box-label">量測寬度</div><div class="detail-box-val">${r.width} M</div></div>
     <div class="detail-box"><div class="detail-box-label">支距（自動）</div><div class="detail-box-val">${r.dist !== '' ? r.dist + ' M' : '第一筆'}</div></div>
@@ -1500,19 +1535,27 @@ function closeModal(e) {
 
 function deleteRow() {
   if (!confirm('確定刪除此筆記錄？')) return;
-  const rawIdx = document.getElementById('modal').dataset.segIdx;
-  const isFree = rawIdx === 'free';
-  if (isFree) {
+
+  // 直接用 currentId 掃描找位置，不依賴 dataset.segIdx（排序後可能失效）
+  let found = false;
+  if (freeRows.find(r => r.id === currentId)) {
     freeRows = freeRows.filter(r => r.id !== currentId);
     let c = 0;
     freeRows.forEach(r => { c = parseFloat((c + r.area).toFixed(2)); r.cumul = c; });
+    found = true;
   } else {
-    const segIdx = parseInt(rawIdx ?? currentSegIdx);
-    const seg = segments[segIdx];
-    seg.rows = seg.rows.filter(r => r.id !== currentId);
-    let c = 0;
-    seg.rows.forEach(r => { c = parseFloat((c + r.area).toFixed(2)); r.cumul = c; });
+    for (let i = 0; i < segments.length; i++) {
+      if (segments[i].rows.find(r => r.id === currentId)) {
+        segments[i].rows = segments[i].rows.filter(r => r.id !== currentId);
+        let c = 0;
+        segments[i].rows.forEach(r => { c = parseFloat((c + r.area).toFixed(2)); r.cumul = c; });
+        found = true;
+        break;
+      }
+    }
   }
+  if (!found) { toast('⚠️ 找不到記錄'); return; }
+
   saveSegments();
   renderSegSelect();
   renderAll();
@@ -2467,7 +2510,36 @@ function copyManholeToLine() {
   });
 }
 
-let posCounters = { L: 1, R: 1 };
+function mhToggleOther() {
+  const cb  = document.getElementById('mhOtherCheck');
+  const txt = document.getElementById('mhOtherText');
+  const row = txt.parentElement;
+  txt.disabled = !cb.checked;
+  txt.style.opacity = cb.checked ? '1' : '0.4';
+  row.style.background   = cb.checked ? 'var(--accent-light)' : 'var(--surface2)';
+  row.style.borderColor  = cb.checked ? 'var(--accent)'       : 'var(--border)';
+  if (cb.checked) txt.focus();
+}
+
+function mhGetUnit() {
+  const units = [...document.querySelectorAll('#mhUnitGrid input[type=checkbox]:checked')]
+    .filter(cb => cb.id !== 'mhOtherCheck')
+    .map(cb => cb.value);
+  const otherCb  = document.getElementById('mhOtherCheck');
+  const otherTxt = document.getElementById('mhOtherText').value.trim();
+  if (otherCb && otherCb.checked && otherTxt) units.push(otherTxt);
+  return units.join('、');
+}
+
+function mhClearUnit() {
+  document.querySelectorAll('#mhUnitGrid input[type=checkbox]').forEach(cb => cb.checked = false);
+  const otherTxt = document.getElementById('mhOtherText');
+  otherTxt.value = ''; otherTxt.disabled = true; otherTxt.style.opacity = '0.4';
+  const otherRow = otherTxt.parentElement;
+  otherRow.style.background = 'var(--surface2)'; otherRow.style.borderColor = 'var(--border)';
+}
+
+
 
 function updatePosButtons() {
   const bl = document.getElementById('btnL');
@@ -2518,7 +2590,7 @@ function addManholeRow() {
   const pos = document.getElementById('mhPos').value.trim();
   const len = parseFloat(document.getElementById('mhLen').value);
   const wid = parseFloat(document.getElementById('mhWid').value);
-  const unit = document.getElementById('mhUnit').value.trim();
+  const unit = mhGetUnit();
 
   if (!stake) { toast('⚠️ 請填寫樁號'); return; }
   if (!pos)   { toast('⚠️ 請填寫相對位置（如 L1、R2）'); return; }
@@ -2896,11 +2968,12 @@ function addSurveyRow() {
   if (!loc) { toast('⚠️ 請填寫地點位置'); return; }
   if (!units.length) { toast('⚠️ 請至少勾選一個管線單位'); return; }
 
-  svRows.push({ id: Date.now(), location: loc, units });
+  svRows.push({ id: Date.now(), location: loc, units, photo: svCurrentPhoto || null });
   svSave();
 
   // 清空（保留地點位置方便連續輸入）
   document.querySelectorAll('#svUnitGrid input[type=checkbox]').forEach(cb => cb.checked = false);
+  svClearPhoto();
   const otherTxt = document.getElementById('svOtherText');
   otherTxt.value = ''; otherTxt.disabled = true; otherTxt.style.opacity = '0.4';
   const otherRow = otherTxt.parentElement;
@@ -2919,12 +2992,13 @@ function renderSurveyList() {
   }
   el.innerHTML = svRows.map((r, i) => `
     <div style="background:var(--surface);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);border-left:4px solid var(--blue);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-      <div style="flex:1;">
+      <div style="flex:1;min-width:0;">
         <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:3px;">地點 ${i+1}</div>
         <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">${r.location}</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:${r.photo ? '8px' : '0'};">
           ${r.units.map(u => `<span style="background:var(--accent-light);color:var(--accent);border:1px solid rgba(230,126,34,0.3);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;">${u}</span>`).join('')}
         </div>
+        ${r.photo ? `<img src="${r.photo}" style="width:100%;max-height:140px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);">` : `<span style="font-size:11px;color:var(--text3);">📷 無照片</span>`}
       </div>
       <button onclick="deleteSurveyRow(${r.id})" style="background:rgba(231,76,60,0.08);color:var(--red);border:1.5px solid rgba(231,76,60,0.3);border-radius:6px;padding:4px 8px;font-size:13px;cursor:pointer;flex-shrink:0;">✕</button>
     </div>`).join('');
@@ -2959,8 +3033,10 @@ async function downloadSurveyDocx() {
         <td style="border:1px solid #333;">${r.units.join('、')}</td>
       </tr>
       <tr>
-        <td colspan="2" style="height:200pt;border:1px solid #333;text-align:center;vertical-align:middle;color:#AAAAAA;font-size:10pt;">
-          （照片）
+        <td colspan="2" style="height:${r.photo ? 'auto' : '200pt'};border:1px solid #333;text-align:center;vertical-align:middle;">
+          ${r.photo
+            ? `<img src="${r.photo}" style="max-width:100%;max-height:300pt;object-fit:contain;">`
+            : `<span style="color:#AAAAAA;font-size:10pt;">（照片）</span>`}
         </td>
       </tr>
     </table>
@@ -2995,6 +3071,111 @@ async function downloadSurveyDocx() {
   a.click();
   URL.revokeObjectURL(url);
   toast('✅ Word 報表已下載！');
+}
+
+// ════ JSON 備份 / 還原 ════
+function exportBackup() {
+  const backup = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    area_project:  localStorage.getItem('area_project')  || '{}',
+    area_segments: localStorage.getItem('area_segments') || '{}',
+    mh_rows:       localStorage.getItem('mh_rows')       || '[]',
+    sv_rows:       localStorage.getItem('sv_rows')       || '[]',
+    proj_names:    localStorage.getItem('proj_names')    || '[]',
+    proj_vendors:  localStorage.getItem('proj_vendors')  || '[]',
+    proj_supers:   localStorage.getItem('proj_supers')   || '[]',
+  };
+  const p = JSON.parse(backup.area_project);
+  const dateStr = (p.date || new Date().toISOString().split('T')[0]).replace(/-/g,'');
+  const fname = `面積計算表備份_${dateStr}.json`;
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = fname; a.click();
+  URL.revokeObjectURL(url);
+  toast('✅ 備份已下載：' + fname);
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const backup = JSON.parse(e.target.result);
+      if (!backup.version) throw new Error('不是有效的備份檔案');
+      if (!confirm(`確定還原此備份？\n匯出時間：${backup.exportedAt || '未知'}\n\n⚠️ 目前所有資料將被覆蓋！`)) return;
+      const keys = ['area_project','area_segments','mh_rows','sv_rows','proj_names','proj_vendors','proj_supers'];
+      keys.forEach(k => { if (backup[k]) localStorage.setItem(k, backup[k]); });
+      // 重新載入
+      loadSegments();
+      loadProject();
+      renderSegSelect();
+      renderAll();
+      renderExport();
+      mhRows = JSON.parse(localStorage.getItem('mh_rows') || '[]');
+      renderManholeTable();
+      svRows = JSON.parse(localStorage.getItem('sv_rows') || '[]');
+      renderSurveyList();
+      toast('✅ 資料已還原！');
+    } catch(err) {
+      toast('⚠️ 還原失敗：' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ════ 區塊上移 / 下移 ════
+function moveSegment(dir) {
+  if (!segments.length) { toast('⚠️ 目前沒有區塊'); return; }
+  const idx = currentSegIdx;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= segments.length) { toast(dir < 0 ? '⚠️ 已是第一塊' : '⚠️ 已是最後一塊'); return; }
+  // 交換
+  [segments[idx], segments[newIdx]] = [segments[newIdx], segments[idx]];
+  currentSegIdx = newIdx;
+  saveSegments();
+  renderSegSelect();
+  renderAll();
+  renderExport();
+  toast(dir < 0 ? `⬆ 已上移到第 ${newIdx + 1} 位` : `⬇ 已下移到第 ${newIdx + 1} 位`);
+}
+
+// ════ 人孔調查照片 ════
+let svCurrentPhoto = null; // base64 string
+
+function svPreviewPhoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  // 壓縮到最大寬度 1200px
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 1200;
+      const ratio = Math.min(1, MAX / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      svCurrentPhoto = canvas.toDataURL('image/jpeg', 0.8);
+      const preview = document.getElementById('svPhotoPreview');
+      preview.src = svCurrentPhoto;
+      preview.style.display = 'block';
+      document.getElementById('svPhotoClear').style.display = 'block';
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function svClearPhoto() {
+  svCurrentPhoto = null;
+  document.getElementById('svPhotoPreview').style.display = 'none';
+  document.getElementById('svPhotoPreview').src = '';
+  document.getElementById('svPhotoClear').style.display = 'none';
+  document.getElementById('svPhotoInput').value = '';
 }
 
 // 初始化調查清單
