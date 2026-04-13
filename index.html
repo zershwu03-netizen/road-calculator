@@ -2537,8 +2537,7 @@ function addManholeRow() {
   mhRows.push({ id: Date.now(), isSeg: false, stake, pos, len, wid, area, cumul, unit });
   mhSave();
 
-  // 清空輸入（保留路段和管線單位方便連續輸入）
-  document.getElementById('mhSeg').value = '';
+  // 清空輸入（保留路段名稱和管線單位方便連續輸入）
   document.getElementById('mhStake').value = '';
   document.getElementById('mhPos').value = '';
   document.getElementById('mhLen').value = '';
@@ -2900,8 +2899,7 @@ function addSurveyRow() {
   svRows.push({ id: Date.now(), location: loc, units });
   svSave();
 
-  // 清空
-  document.getElementById('svLocation').value = '';
+  // 清空（保留地點位置方便連續輸入）
   document.querySelectorAll('#svUnitGrid input[type=checkbox]').forEach(cb => cb.checked = false);
   const otherTxt = document.getElementById('svOtherText');
   otherTxt.value = ''; otherTxt.disabled = true; otherTxt.style.opacity = '0.4';
